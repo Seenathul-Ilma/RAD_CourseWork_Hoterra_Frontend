@@ -1,37 +1,15 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
+import { AuthProvider } from "./context/authContext"
+import Router from "./routes"
 
-const Welcome = lazy(() => import("./pages/Welcome"));
-const Register = lazy(() => import("./pages/Register"));
-const Login = lazy(() => import("./pages/Login"));
-const Home = lazy(() => import("./pages/Home"));
-const Service = lazy(() => import("./pages/Service"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Rooms = lazy(() => import("./pages/Rooms"));
-// const RoomDetail = lazy(() => import("./pages/RoomDetail"))
-const MyBookings = lazy(() => import("./pages/MyBookings"));
-const MyStays = lazy(() => import("./pages/MyStays"));
+const App = () => {
 
-export default function Router() {
-  return (
-    <BrowserRouter>
-      <Suspense fallback={<div>Loading..</div>}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+  // context ek athule tiyna dewal meken access krnn ba wrap wela thiynna one..
 
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Welcome />} />
-            <Route path="home" element={<Home />} />
-            <Route path="service" element={<Service />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="rooms" element={<Rooms />} />
-            <Route path="my-bookings" element={<MyBookings />} />
-            <Route path="my-stays" element={<MyStays />} />
-          </Route>
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
-  );
+    return (
+      <AuthProvider>
+        <Router />
+      </AuthProvider>
+    )
 }
+
+export default App
