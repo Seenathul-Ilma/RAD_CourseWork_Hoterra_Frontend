@@ -3,7 +3,7 @@ import { getMyDetail } from "../services/auth"
 
 const AuthContext = createContext<any>(null)
 
-export const AuthProvider = ({ Children } : any) => {
+export const AuthProvider = ({ children } : any) => {
     const [user, setUser] = useState<any>(null)
     const [loading, setLoading] = useState(true)
 
@@ -29,7 +29,7 @@ export const AuthProvider = ({ Children } : any) => {
 
     return (
         <AuthContext.Provider value={{ user, setUser, loading }}>
-            {Children}
+            {children}
         </AuthContext.Provider>
     )
 }

@@ -1,6 +1,7 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense, type ReactNode } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../components/Layout";
+import { useAuth } from "../context/authContext"
 
 const Welcome = lazy(() => import("../pages/Welcome"));
 const Register = lazy(() => import("../pages/Register"));
@@ -13,24 +14,57 @@ const Rooms = lazy(() => import("../pages/Rooms"));
 const MyBookings = lazy(() => import("../pages/MyBookings"));
 const MyStays = lazy(() => import("../pages/MyStays"));
 
+type RequireAuthTypes = { children: ReactNode; roles?: string[] }
+
+const RequireAuth = ({ children, roles }: RequireAuthTypes) => {   // children - default prop
+  const { user, loading } = useAuth()
+
+  if(loading) {
+      return <div>User Loading..!</div>
+  }
+
+  if(!user) {
+    return <Navigate to="/login" replace/>
+  }
+
+  // user null da kiyl check krl vr vunata passe (if user not null)
+  if(roles && !roles.some((role)=> user.roles?.includes(role))) {
+    return (
+      <div>
+        <h2 className="text-center py-20">Access Denied..!</h2>
+        <p className="text-xl font-bold mb-2">You don't have permission to view this page.</p>
+      </div>
+    )
+  }
+
+  return <>{children}</>
+}
+
 export default function Router() {
   return (
     <BrowserRouter>
+
       <Suspense fallback={<div>Loading..</div>}>
         <Routes>
-          <Route path="/" element={<Welcome /> } />
+          <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Welcome />} />
-            <Route path="home" element={<Home />} />
-            <Route path="service" element={<Service />} />
-            <Route path="contact" element={<Contact />} />
-            <Route path="rooms" element={<Rooms />} />
-            <Route path="my-bookings" element={<MyBookings />} />
-            <Route path="my-stays" element={<MyStays />} />
+          <Route element={
+            <RequireAuth>
+              <Layout />
+            </RequireAuth>
+          }>
+
+            <Route path="/home" element={<Home />} />
+            <Route path="/service" element={<Service />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/rooms" element={<Rooms />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/my-stays" element={<MyStays />} />
+
           </Route>
+          
         </Routes>
       </Suspense>
     </BrowserRouter>
