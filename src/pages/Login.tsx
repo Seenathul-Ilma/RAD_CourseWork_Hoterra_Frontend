@@ -12,9 +12,9 @@ export default function Login() {
     <div className="max-w-md w-full space-y-8">
         {/* <!-- Header --> */}
         <div className="text-center">
-            <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                <Hotel className="w-10 h-10 font-medium text-white" />
-            </div>
+            <div className="mx-auto h-16 w-16 bg-gradient-to-r from-amber-600 to-amber-800 rounded-full flex items-center justify-center mb-4 shadow-lg">
+    <Hotel className="w-10 h-10 font-medium text-white" />
+</div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
             <p className="text-gray-600">Sign in to your Hoterra account</p>
         </div>
@@ -70,14 +70,14 @@ export default function Login() {
                     <div className="flex items-center">
                         <input
                                 type="checkbox"
-                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
                         />
                         <label className="ml-2 block text-sm text-gray-900">
                             Remember me
                         </label>
                     </div>
                     <div className="text-sm">
-                        <Link to="/" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                        <Link to="/" className="font-medium text-amber-700 hover:text-amber-900 transition-colors duration-200">
                           Forgot your password?
                         </Link>
                     </div>
@@ -86,8 +86,7 @@ export default function Login() {
                 {/* Submit Button */}
                 <button
                         type="submit"
-                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95"
-                >
+className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95"                >
                     <LogIn className="w-5 h-5 mr-2" />
                     Sign In
                 </button>
@@ -97,7 +96,7 @@ export default function Login() {
             <div className="text-center pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600">
                     Don't have an account?{' '}
-                    <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200">
+                    <Link to="/register" className="font-medium text-amber-700 hover:text-amber-900 transition-colors duration-200">
                         Create one here
                     </Link>
                 </p>
