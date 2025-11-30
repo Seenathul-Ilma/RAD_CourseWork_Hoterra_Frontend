@@ -1,15 +1,64 @@
 import { Eye, Lock, Mail, Hotel, User, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, type FormEvent } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { register } from "../services/auth";
 
 export default function Register() {
+    const navigate = useNavigate();
 
-  const [firstName, setFirstName] = useState("")
-  const [lastName, setLastName] = useState("")
+  const [firstname, setFirstName] = useState("")
+  const [lastname, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [conPassword, setConPassword] = useState("")
   const [role, setRole] = useState("USER")
+
+  const search = useLocation().search;
+  const roleParam = new URLSearchParams(search).get("role");
+
+  useEffect(() => {
+    if (roleParam === "RECEPTIONIST") {
+      setRole("RECEPTIONIST");
+    } else {
+      setRole("GUEST");
+    }
+  }, [roleParam]);
+
+  const handleRegister = async (e: FormEvent) => {
+    e.preventDefault()
+
+    if (!firstname || !lastname || !email || !password || !conPassword) {
+      alert("Oooppsss.. All fields are required..!");
+      return;
+    }
+
+    if (password !== conPassword) {
+      alert("Oooppsss.. Password do not match..!");
+      return;
+    }
+
+    try {
+      const obj = {
+        firstname,
+        lastname,
+        email,
+        password,
+        role,
+      };
+
+      const res: any = await register(obj);
+      console.log(res.data);
+      console.log(res.message);
+      alert(`Registration successful..! Email: ${res?.data?.email}`);
+
+      //localStorage.setItem("accessToken")
+      navigate("/login");
+    } catch (err: any) {
+      console.error(err?.response?.data);
+    }
+  }
+    
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -34,7 +83,7 @@ export default function Register() {
                   <User className="w-5 h-5 text-gray-400" />
                 </div>
                 <input
-                  value={firstName}
+                  value={firstname}
                   type="text"
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200 ease-in-out hover:border-gray-400"
@@ -52,7 +101,7 @@ export default function Register() {
                   <User className="w-5 h-5 text-gray-400" />
                 </div>
                 <input
-                  value={lastName}
+                  value={lastname}
                   type="text"
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200 ease-in-out hover:border-gray-400"
@@ -145,6 +194,7 @@ export default function Register() {
             <button
               type="submit"
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95"
+              onClick={handleRegister}
             >
               <UserPlus className="w-5 h-5 mr-2" />
               Create Account
