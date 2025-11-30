@@ -1,11 +1,59 @@
 import { Eye, Lock, LogIn, Mail, Hotel } from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { useAuth } from "../context/authContext";
+import { getMyDetail, login } from "../services/auth";
 
 export default function Login() {
+  const navigate = useNavigate();
+
+  //const {user, setUser} = useAuth()   // authContext eke values vala dhapu eke copy and paste -> {user, setUser} // only required eka gnnath puluvan
+  const { setUser } = useAuth();
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+
+  const handleLogin = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      alert("Oooppsss.. All fields are required..!");
+      return;
+    }
+
+    try {
+      const res: any = await login(email, password);
+      console.log(res.data);
+      console.log(res.message);
+      console.log(res.data.accessToken);
+      console.log(res.data.refreshToken);
+
+      if (!res.data.accessToken || !res.data.refreshToken) {
+        alert("Failed to login..!");
+        return;
+      }
+
+      await localStorage.setItem("accessToken", res.data.accessToken);
+      await localStorage.setItem("refreshToken", res.data.refreshToken);
+
+     console.log("Before MyProfile..");
+
+      alert(`Login successful..! Email: ${res?.data?.email}`);
+
+      const profile = await getMyDetail();
+      console.log("MyProfile..");
+      // use redux to save userdata
+      // or, use auth context (more speed to get user details)
+      //console.log(profile.data)   // before add const {user, setUser} = useAuth()
+      setUser(profile.data);
+
+      console.log("profile.data: "+profile.data)
+
+      navigate("/home");
+    } catch (err: any) {
+      console.error(err?.response?.data);
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -86,7 +134,9 @@ export default function Login() {
                 {/* Submit Button */}
                 <button
                         type="submit"
-className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95"                >
+                        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95"
+                        onClick={handleLogin}
+                >
                     <LogIn className="w-5 h-5 mr-2" />
                     Sign In
                 </button>
@@ -96,7 +146,7 @@ className="w-full flex justify-center py-3 px-4 border border-transparent rounde
             <div className="text-center pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600">
                     Don't have an account?{' '}
-                    <Link to="/register" className="font-medium text-amber-700 hover:text-amber-900 transition-colors duration-200">
+                    <Link to="/register?role=GUEST" className="font-medium text-amber-700 hover:text-amber-900 transition-colors duration-200">
                         Create one here
                     </Link>
                 </p>
