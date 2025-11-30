@@ -1,8 +1,8 @@
 import axiosConfig from "./api"
 
 type registerDataType = {
-    firstName: string  // firstName: firstName
-    lastName: string
+    firstname: string  // firstName: firstName
+    lastname: string
     email: string
     password: string
     role: string
