@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Hotel, Menu } from "lucide-react";
+import { useAuth } from "../context/authContext"
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
@@ -12,7 +14,7 @@ export default function Header() {
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-amber-600 to-amber-800 rounded-lg flex items-center justify-center">
                 {/* <span className="text-white font-bold text-lg">H</span> */}
                 <Hotel className="text-white font-bold text-lg" />
               </div>
@@ -24,51 +26,64 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link
               to="/home"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
             >
               Home
             </Link>
             <Link
               to="/service"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
             >
               Services
             </Link>
             <Link
               to="/rooms"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
             >
               Rooms
             </Link>
             <Link
               to="/contact"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
             >
               Contact
             </Link>
-            <Link
+            {user.roles?.includes("GUEST") && (
+            <>
+              <Link
               to="/my-bookings"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
             >
               Bookings
             </Link>
             <Link
               to="/my-stays"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
             >
               Stays
             </Link>
+            </>
+            )}
+            {user.roles?.includes("ADMIN") && (
+            <>
+              <Link
+              to="/staff"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
+              >
+                Staffs
+              </Link>
+            </>
+            )}
             <div className="flex items-center space-x-4">
               <Link
                 to="/login"
-                className="text-gray-700 hover:text-blue-600 transition-colors duration-300"
+                className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className="bg-gradient-to-r
- from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity duration-300"
+                className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity duration-300"
               >
                 Sign Up
               </Link>
@@ -91,50 +106,50 @@ export default function Header() {
           <div className="flex flex-col space-y-2">
             <Link
               to="/home"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 py-2"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300 py-2"
             >
               Home
             </Link>
             <Link
               to="/service"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 py-2"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300 py-2"
             >
               Services
             </Link>
             <Link
               to="/rooms"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 py-2"
+              className="text-gray-700 hover:text-amber-60 transition-colors duration-300 py-2"
             >
               Rooms
             </Link>
             <Link
               to="/contact"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 py-2"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300 py-2"
             >
               Contact
             </Link>
             <Link
               to="/my-bookings"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 py-2"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300 py-2"
             >
               Bookings
             </Link>
             <Link
               to="/my-stays"
-              className="text-gray-700 hover:text-blue-600 transition-colors duration-300 py-2"
+              className="text-gray-700 hover:text-amber-600 transition-colors duration-300 py-2"
             >
               Stays
             </Link>
             <div className="flex flex-col space-y-3 pt-2">
               <Link
                 to="/login"
-                className="text-gray-700 hover:text-blue-600 transition-colors duration-300 py-2"
+                className="text-gray-700 hover:text-amber-600 transition-colors duration-300 py-2"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg text-center hover:opacity-90 transition-opacity duration-300"
+                className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-4 py-2 rounded-lg text-center hover:opacity-90 transition-opacity duration-300"
               >
                 Sign Up
               </Link>
