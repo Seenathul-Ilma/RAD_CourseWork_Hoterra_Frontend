@@ -13,6 +13,8 @@ const Rooms = lazy(() => import("../pages/Rooms"));
 // const RoomDetail = lazy(() => import("../pages/RoomDetail"))
 const MyBookings = lazy(() => import("../pages/MyBookings"));
 const MyStays = lazy(() => import("../pages/MyStays"));
+const Staff = lazy(() => import("../pages/Staff"));
+
 
 type RequireAuthTypes = { children: ReactNode; roles?: string[] }
 
@@ -60,9 +62,21 @@ export default function Router() {
             <Route path="/service" element={<Service />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/rooms" element={<Rooms />} />
-            <Route path="/my-bookings" element={<MyBookings />} />
-            <Route path="/my-stays" element={<MyStays />} />
-
+            <Route path="/my-bookings" element={
+              <RequireAuth roles={["GUEST"]}>
+                <MyBookings />
+              </RequireAuth>
+            } />
+            <Route path="/my-stays" element={
+              <RequireAuth roles={["GUEST"]}>
+                <MyStays />
+              </RequireAuth>
+            } />
+            <Route path="/staff" element={
+              <RequireAuth roles={["ADMIN"]}>
+                <Staff />
+              </RequireAuth>
+            } />
           </Route>
           
         </Routes>
