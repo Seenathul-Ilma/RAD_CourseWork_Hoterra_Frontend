@@ -1,25 +1,31 @@
-import { Eye, Lock, Mail, Hotel, User, UserPlus } from "lucide-react";
+import { Eye, Lock, Mail, Hotel, User, UserPlus, Phone, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { register } from "../services/auth";
 
 export default function Register() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [firstname, setFirstName] = useState("")
   const [lastname, setLastName] = useState("")
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
   const [conPassword, setConPassword] = useState("")
   const [role, setRole] = useState("USER")
 
-  const search = useLocation().search;
-  const roleParam = new URLSearchParams(search).get("role");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConPassword, setShowConPassword] = useState(false);
+
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const token = params.get("token"); // this gets the token from URL
+  const roleParam = params.get("role")
 
   useEffect(() => {
-    if (roleParam === "RECEPTIONIST") {
-      setRole("RECEPTIONIST");
+    if (token && roleParam) {
+      setRole(roleParam);
     } else {
       setRole("GUEST");
     }
@@ -28,7 +34,7 @@ export default function Register() {
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault()
 
-    if (!firstname || !lastname || !email || !password || !conPassword) {
+    if (!firstname || !lastname || !email || !phone || !password || !conPassword) {
       alert("Oooppsss.. All fields are required..!");
       return;
     }
@@ -43,8 +49,10 @@ export default function Register() {
         firstname,
         lastname,
         email,
+        phone,
         password,
         role,
+        token
       };
 
       const res: any = await register(obj);
@@ -57,8 +65,7 @@ export default function Register() {
     } catch (err: any) {
       console.error(err?.response?.data);
     }
-  }
-    
+  }  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -129,6 +136,24 @@ export default function Register() {
               </div>
             </div>
 
+            {/* Contact Field */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contact</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                </div>
+                <input
+                  value={phone}
+                  type="tel"
+                  required
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200 ease-in-out hover:border-gray-400"
+                  placeholder="Enter your contact number"
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+            </div>
+
             {/* Password Field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
@@ -138,17 +163,23 @@ export default function Register() {
                 </div>
                 <input
                   value={password}
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200 ease-in-out hover:border-gray-400"
                   placeholder="Create a strong password"
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                {/* Toggle Button */}
                 <button
                   type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                  )}
                 </button>
               </div>
               <p className="mt-1 text-sm text-gray-500">Password must be at least 8 characters long</p>
@@ -163,17 +194,23 @@ export default function Register() {
                 </div>
                 <input
                   value={conPassword}
-                  type="password"
+                  type={showConPassword ? "text" : "password"}
                   required
                   className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition duration-200 ease-in-out hover:border-gray-400"
                   placeholder="Confirm your password"
                   onChange={(e) => setConPassword(e.target.value)}
                 />
+                {/* Toggle Button */}
                 <button
                   type="button"
+                  onClick={() => setShowConPassword(!showConPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                  {showConPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                  )}
                 </button>
               </div>
             </div>

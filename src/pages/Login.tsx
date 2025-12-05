@@ -1,4 +1,4 @@
-import { Eye, Lock, LogIn, Mail, Hotel } from "lucide-react";
+import { Eye, Lock, LogIn, Mail, Hotel, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../context/authContext";
@@ -12,6 +12,7 @@ export default function Login() {
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -97,18 +98,23 @@ export default function Login() {
                         </div>
                         <input
                                 value={password}
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 required
                                 className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ease-in-out hover:border-gray-400"
                                 placeholder="Enter your password"
                                 onChange={(e) => setPassword(e.target.value)}
                         />
+                        {/* Toggle Button */}
                         <button
-                                type="button"
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                /* onclick={} */
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
                         >
+                        {showPassword ? (
+                            <EyeOff className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                        ) : (
                             <Eye className="w-5 h-5 text-gray-400 hover:text-gray-600 cursor-pointer transition-colors" />
+                        )}
                         </button>
                     </div>
                 </div>
@@ -146,7 +152,7 @@ export default function Login() {
             <div className="text-center pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-600">
                     Don't have an account?{' '}
-                    <Link to="/register?role=GUEST" className="font-medium text-amber-700 hover:text-amber-900 transition-colors duration-200">
+                    <Link to="/register" className="font-medium text-amber-700 hover:text-amber-900 transition-colors duration-200">
                         Create one here
                     </Link>
                 </p>
