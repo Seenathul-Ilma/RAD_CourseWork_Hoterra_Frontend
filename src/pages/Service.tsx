@@ -1,6 +1,276 @@
+import { useEffect, useState, type FormEvent } from "react";
+import { createAmenity, generateAmenityDesc, getAllAmenity } from "../services/amenity";
+import SuccessMessage from "../components/SuccessMessage";
+import ErrorMessage from "../components/ErrorMessage";
+import { NavLink } from "react-router-dom";
+import { CircleArrowLeft, CircleArrowRight, PlusIcon, Sparkles } from "lucide-react";
 
 export default function Service() {
+  const [amenities, setAmenities] = useState([]);
+  const [page, setPage] = useState(1)
+  const [totalPage, setTotalPage] = useState(1)
+
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [amenityname, setAmenityname] = useState("")
+  const [description, setDiscription] = useState("")
+
+  const colorCombinations = [
+    { bgColor: "bg-amber-100", iconColor: "text-amber-600" },
+    { bgColor: "bg-purple-100", iconColor: "text-purple-600" },
+    { bgColor: "bg-green-100", iconColor: "text-green-600" },
+    { bgColor: "bg-blue-100", iconColor: "text-blue-600" },
+    { bgColor: "bg-orange-100", iconColor: "text-orange-600" },
+    { bgColor: "bg-indigo-100", iconColor: "text-indigo-600" },
+    { bgColor: "bg-pink-100", iconColor: "text-pink-600" },
+    { bgColor: "bg-rose-100", iconColor: "text-rose-600" },
+    { bgColor: "bg-teal-100", iconColor: "text-teal-600" },
+    { bgColor: "bg-cyan-100", iconColor: "text-cyan-600" }
+  ];
+
+  const getColorForAmenity = (amenityName: string) => {
+    let hash = 0;
+    for (let i = 0; i < amenityName.length; i++) {
+      hash = amenityName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colorCombinations.length;
+    return colorCombinations[index];
+  };
+
+  /* useEffect(() => {
+    const fetchAmenities = async (pageNumber = 1) => {
+      try {
+        const response = await getAllAmenity(pageNumber, 10);
+
+        const amenitiesList = response.data; // <-- actual array
+        const amenitiesWithColors = amenitiesList.map((amenity: any) => ({
+          ...amenity,
+          ...getColorForAmenity(amenity.amenityname)
+        }));
+
+        setAmenities(amenitiesWithColors);
+        setPage(response.page);
+        setTotalPage(response.totalPages);
+
+      } catch (error) {
+        console.error("Error fetching amenities:", error);
+      }
+    };
+
+    fetchAmenities();
+  }, []); */
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async (pageNumber = 1) => {
+    try {
+      const data = await getAllAmenity(pageNumber, 9);
+
+      const amenitiesList = data?.data;
+      const amenitiesWithColors = amenitiesList.map((amenity: any) => ({
+        ...amenity,
+        ...getColorForAmenity(amenity.amenityname)
+      }))
+
+      //console.log(data)
+      //setAmenities(data?.data);
+      setAmenities(amenitiesWithColors)
+      setTotalPage(data?.totalPages);
+      setPage(pageNumber);
+    } catch (err) {
+      console.error("Error fetching amenities: ", err);
+    }
+  };
+
+  const handleAmenityDescAiGeneration = async (e: FormEvent) => {
+    e.preventDefault();
+    setSuccessMsg("");
+    setErrorMsg("");
+
+    try {
+
+      if (!amenityname) {
+          setErrorMsg("Amenity name required to generate description.");
+          return;
+      }
+
+      const res = await generateAmenityDesc({ amenityname });
+      setDiscription(res.description)
+
+    } catch (err: any) {
+      const message = err?.response?.data?.message || "Something went wrong!";
+      setErrorMsg(message);
+    }
+  }
+
+  const handleSaveAmenity = async (e: FormEvent) => {
+    e.preventDefault();
+    setSuccessMsg("");
+    setErrorMsg("");
+
+    try {
+      /* const formData = new FormData();
+      formData.append("amenityname", amenityname);
+      formData.append("description", description);
+
+      //const res = await createPost(formData);
+      await createAmenity(formData); */    // remove unused variables and imports
+
+      if (!amenityname || !description) {
+          setErrorMsg("Amenity name and description are required!");
+          return;
+      }
+
+      const res = await createAmenity({ amenityname, description });
+
+      console.log("API Response:", res.message);
+
+      // Check different possible response structures
+      setSuccessMsg(res.message || "Amenity successfully!");
+
+      await fetchData(1);
+
+      // Clear input fields
+      setAmenityname("");
+      setDiscription("");
+
+    } catch (err : any) {
+      const message = err?.response?.data?.message || "Something went wrong!";
+      setErrorMsg(message);
+    }
+  };
+
+
   return (
-    <div>Service</div>
-  )
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+
+      {/* Pass onClose handlers to auto-dismiss messages */}
+      <SuccessMessage message={successMsg} onClose={() => setSuccessMsg("")} />
+      <ErrorMessage message={errorMsg} onClose={() => setErrorMsg("")} />
+
+      <div className="container mx-auto px-4 py-16 pt-24">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            Our Premium Services
+          </h1>
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Experience exceptional hospitality with our comprehensive range of services designed for your comfort and convenience.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100">
+          <form>
+            <div className="border border-gray-200 rounded-lg p-5 text-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <PlusIcon className="text-amber-600 w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">Create Service</h3>
+            <p className="text-gray-600 mb-4">Add new services to your hospitality offerings with detailed descriptions and pricing.</p>
+            
+            <div className="space-y-5">
+              {/* Amenity Name Field */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  <span className="flex items-center">
+                    Service Name
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  value={amenityname}
+                  onChange={(e) => setAmenityname(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent transition-all duration-300"
+                  placeholder="Enter service name (e.g., Swimming Pool, WiFi)"
+                />
+              </div>
+
+            {/* Amenity Name Field */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-gray-700 font-medium flex items-center">
+                    Service Description
+                  </label>
+                  <button onClick={handleAmenityDescAiGeneration} className="text-white bg-gradient-to-r from-amber-600 to-amber-800 flex items-center gap-2 px-3 py-1 rounded hover:bg-blue-50 transition">
+                    Generate Description
+                    <Sparkles className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <textarea
+                  value={description}
+                  onChange={(e) => setDiscription(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-300 focus:border-transparent transition-all duration-300 resize-none"
+                  placeholder="Describe the service in detail. Include features, benefits, and any important information for guests..."
+                />
+              </div>
+            </div>
+            
+            <button onClick={handleSaveAmenity} className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:opacity-90 transition-opacity duration-300 w-full">
+              Create New Service
+            </button>
+          </div>
+          </form>
+        </div>
+
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto pt-7">
+          {amenities.map((amenity: any, index) => {
+            
+            return (
+              <div
+                key={index}
+                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+              >
+                <div className={`w-14 h-14 ${amenity.bgColor} rounded-lg flex items-center justify-center mb-4`}>
+                  <Sparkles className={amenity.iconColor} size={28} />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  {amenity.amenityname}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {amenity.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-between items-center mt-8">
+        <button
+          onClick={() => {
+            fetchData(page - 1);
+          }}
+          disabled={page === 1}
+          className="disabled:opacity-50 bg-amber-100 rounded-2xl"
+        >
+          <CircleArrowLeft className="w-8 h-8 text-amber-800" />
+        </button>
+        <div className="text-sm text-gray-600">
+          Page {page} of {totalPage}
+        </div>
+        <button
+          onClick={() => {
+            fetchData(page + 1);
+          }}
+          disabled={page === totalPage}
+          className="disabled:opacity-50 bg-amber-100 rounded-full"
+        >
+          <CircleArrowRight className="w-8 h-8 text-amber-800" /> 
+        </button>
+      </div>
+
+        {/* Call to Action */}
+        <div className="text-center mt-16">
+          <NavLink to="/rooms" className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-8 py-3 rounded-lg hover:opacity-90 transition-opacity duration-300 font-semibold">
+            Book Your Stay Now
+          </NavLink>
+        </div>
+      </div>
+    </div>
+  );
 }
