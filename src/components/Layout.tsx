@@ -7,7 +7,7 @@ export default function Layout() {
     <div>
         <Header />
         
-        <main>
+        <main style={{fontFamily:"poppins"}}>
             <Outlet />
         </main>
 
