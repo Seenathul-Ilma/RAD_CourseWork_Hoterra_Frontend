@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { createAmenity, generateAmenityDesc, getAllAmenity } from "../services/amenity";
+import { createAmenity, deleteAmenity, generateAmenityDesc, getAllAmenity, updateAmenity } from "../services/amenity";
 import SuccessMessage from "../components/SuccessMessage";
 import ErrorMessage from "../components/ErrorMessage";
 import { NavLink } from "react-router-dom";
-import { CircleArrowLeft, CircleArrowRight, PlusIcon, Sparkles } from "lucide-react";
+import { CircleArrowLeft, CircleArrowRight, PlusIcon, RotateCcw, Sparkles, SquarePen, Trash2 } from "lucide-react";
 
 export default function Service() {
   const [amenities, setAmenities] = useState([]);
@@ -15,6 +15,8 @@ export default function Service() {
 
   const [amenityname, setAmenityname] = useState("")
   const [description, setDiscription] = useState("")
+
+  const [editingAmenityId, setEditingAmenityId] = useState<string | null>(null);
 
   const colorCombinations = [
     { bgColor: "bg-amber-100", iconColor: "text-amber-600" },
@@ -37,29 +39,6 @@ export default function Service() {
     const index = Math.abs(hash) % colorCombinations.length;
     return colorCombinations[index];
   };
-
-  /* useEffect(() => {
-    const fetchAmenities = async (pageNumber = 1) => {
-      try {
-        const response = await getAllAmenity(pageNumber, 10);
-
-        const amenitiesList = response.data; // <-- actual array
-        const amenitiesWithColors = amenitiesList.map((amenity: any) => ({
-          ...amenity,
-          ...getColorForAmenity(amenity.amenityname)
-        }));
-
-        setAmenities(amenitiesWithColors);
-        setPage(response.page);
-        setTotalPage(response.totalPages);
-
-      } catch (error) {
-        console.error("Error fetching amenities:", error);
-      }
-    };
-
-    fetchAmenities();
-  }, []); */
 
   useEffect(() => {
     fetchData();
@@ -111,6 +90,11 @@ export default function Service() {
     setSuccessMsg("");
     setErrorMsg("");
 
+    if (!amenityname || !description) {
+      setErrorMsg("Amenity name and description are required!");
+      return;
+    }
+
     try {
       /* const formData = new FormData();
       formData.append("amenityname", amenityname);
@@ -119,23 +103,19 @@ export default function Service() {
       //const res = await createPost(formData);
       await createAmenity(formData); */    // remove unused variables and imports
 
-      if (!amenityname || !description) {
-          setErrorMsg("Amenity name and description are required!");
-          return;
+      if (editingAmenityId) {
+        // UPDATE existing amenity
+        const res = await updateAmenity(editingAmenityId, { amenityname, description });
+        setSuccessMsg(res.message || "Amenity updated successfully!");
+      } else {
+        // CREATE new amenity
+        const res = await createAmenity({ amenityname, description });
+        setSuccessMsg(res.message || "Amenity created successfully!");
       }
-
-      const res = await createAmenity({ amenityname, description });
-
-      console.log("API Response:", res.message);
-
-      // Check different possible response structures
-      setSuccessMsg(res.message || "Amenity successfully!");
 
       await fetchData(1);
 
-      // Clear input fields
-      setAmenityname("");
-      setDiscription("");
+      handleReset()
 
     } catch (err : any) {
       const message = err?.response?.data?.message || "Something went wrong!";
@@ -143,6 +123,36 @@ export default function Service() {
     }
   };
 
+  const handleEditClick = (amenity: any) => {
+    setAmenityname(amenity.amenityname);
+    setDiscription(amenity.description);
+    setEditingAmenityId(amenity._id);
+  };
+
+  const handleDelete = async (id: string) => {
+  if (!confirm("Are you sure you want to delete this amenity?")) return;
+
+  try {
+    const res = await deleteAmenity(id);
+
+    setSuccessMsg(res.message || "Amenity deleted successfully!");
+    await fetchData(page);
+
+  } catch (err: any) {
+    const message = err?.response?.data?.message || "Delete failed!";
+    setErrorMsg(message);
+  }
+};
+
+
+  const handleReset = () => {
+    setAmenityname("");
+    setDiscription("");
+    setEditingAmenityId(null);
+
+    setSuccessMsg("");
+    setErrorMsg("");
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -158,7 +168,7 @@ export default function Service() {
             Our Premium Services
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Experience exceptional hospitality with our comprehensive range of services designed for your comfort and convenience.
+            Discover thoughtfully crafted, comfort-enhancing amenities that elevate your stay with added warmth and convenience.
           </p>
         </div>
 
@@ -166,11 +176,14 @@ export default function Service() {
           <form>
             <div className="border border-gray-200 rounded-lg p-5 text-center">
             <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <PlusIcon className="text-amber-600 w-8 h-8" />
+              {editingAmenityId ? <RotateCcw className="text-amber-600 w-8 h-8" /> : <PlusIcon className="text-amber-600 w-8 h-8" /> }
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">Create Service</h3>
-            <p className="text-gray-600 mb-4">Add new services to your hospitality offerings with detailed descriptions and pricing.</p>
-            
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">
+              {editingAmenityId ? "Update Service" : "Create Service"}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {editingAmenityId ? "Refine and enhance your room amenity details for a better guest experience." : "Enhance your room experience by adding well-defined amenities."}
+            </p>
             <div className="space-y-5">
               {/* Amenity Name Field */}
               <div>
@@ -210,9 +223,17 @@ export default function Service() {
               </div>
             </div>
             
-            <button onClick={handleSaveAmenity} className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:opacity-90 transition-opacity duration-300 w-full">
-              Create New Service
-            </button>
+            <div className="flex gap-3">
+              <button onClick={handleSaveAmenity} className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:opacity-90 transition-opacity duration-300 w-full">
+                {editingAmenityId ? "Update" : "Save"}
+              </button>
+              <button
+                type="button"
+                onClick={handleReset} 
+                className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:opacity-90 transition-opacity duration-300 w-full">
+                Reset
+              </button>
+            </div>
           </div>
           </form>
         </div>
@@ -220,15 +241,43 @@ export default function Service() {
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto pt-7">
           {amenities.map((amenity: any, index) => {
-            
             return (
               <div
                 key={index}
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditClick(amenity);
+                }}
+                className="relative bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100 group"
               >
+                {/* Action buttons */}
+                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditClick(amenity);
+                    }}
+                    className="px-2 py-1 rounded-full text-xs bg-green-100"
+                  >
+                    <SquarePen className="w-5 h-5 text-green-700"/>
+                  </button>
+                  <button
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      handleDelete(amenity._id);
+                    }}
+                    className="px-2 py-1 rounded-full text-xs bg-red-100"
+                  >
+                    <Trash2 className="w-5 h-5 text-red-700" />
+                  </button>
+                </div>
+
+                {/* Amenity icon */}
                 <div className={`w-14 h-14 ${amenity.bgColor} rounded-lg flex items-center justify-center mb-4`}>
                   <Sparkles className={amenity.iconColor} size={28} />
                 </div>
+
+                {/* Amenity details */}
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">
                   {amenity.amenityname}
                 </h3>
