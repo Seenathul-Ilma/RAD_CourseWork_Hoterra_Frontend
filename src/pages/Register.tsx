@@ -13,7 +13,7 @@ export default function Register() {
   const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
   const [conPassword, setConPassword] = useState("")
-  const [role, setRole] = useState("USER")
+  const [role, setRole] = useState("GUEST")
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConPassword, setShowConPassword] = useState(false);
