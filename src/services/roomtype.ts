@@ -1,7 +1,12 @@
 import api from "./api"
 
-export const getAllRoomType = async (page: number, limit: number) => {
+/* export const getAllRoomType = async (page: number, limit: number) => {
     const res = await api.get(`/roomtype?page=${page}&limit=${limit}`)
+    return res.data
+} */
+
+export const getAllRoomType = async (page: number, limit: number, group?: string, sort?: string) => {
+    const res = await api.get(`/roomtype?group=${group}&sort=${sort}&page=${page}&limit=${limit}`)
     return res.data
 }
 

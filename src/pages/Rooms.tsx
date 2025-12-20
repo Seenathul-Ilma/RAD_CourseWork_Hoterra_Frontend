@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   createRoomType,
   deleteRoomType,
@@ -12,6 +12,8 @@ import ErrorMessage from "../components/ErrorMessage";
 
 import {
   Baby,
+  Check,
+  ChevronDown,
   CircleArrowLeft,
   CircleArrowRight,
   PlusIcon,
@@ -48,6 +50,60 @@ export default function Rooms() {
     null
   );
 
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [isSortOptionOpen, setIsSortOptionOpen] = useState(false);
+  const [selectedSortOption, setSelectedSortOption] = useState('');
+  const sortdropdownRef = useRef<HTMLDivElement>(null);
+
+  const sortOptions = [
+    { group: 'Price', options: [
+      { value: 'price-asc', label: 'Low to high' },
+      { value: 'price-desc', label: 'High to low' }
+    ]},
+    { group: 'Alphabet', options: [
+      { value: 'name-asc', label: 'A to Z' },
+      { value: 'name-desc', label: 'Z to A' }
+    ]}
+  ];
+
+  const handleSortSelect = (sortValue: string) => {
+    setSelectedSortOption(sortValue);             // Update current sort state
+    setIsSortOptionOpen(false);
+    setPage(1)
+    fetchData(1, selectedGroup, sortValue); // Refetch data with new sort
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (sortdropdownRef.current && !sortdropdownRef.current.contains(event.target)) {
+        setIsSortOptionOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  /* const handleSelect = (value : any) => {
+    setSelectedSortOption(value);
+    setIsSortOptionOpen(false);
+    // Add your sorting logic here
+  }; */
+
+  const getDisplayText = () => {
+    if (!selectedSortOption) return "Sort rooms by";
+    
+    // Find the selected option label
+    for (const group of sortOptions) {
+      const option = group.options.find(opt => opt.value === selectedSortOption);
+      if (option) return option.label;
+    }
+    return "Sort rooms by";
+  };
+
   const maxAdultCountIncrement = () => {
     setMaxadults((prev) => prev + 1);
   };
@@ -66,17 +122,24 @@ export default function Rooms() {
     setMaxchild((prev) => Math.max(0, prev - 1));
   };
 
-  useEffect(() => {
+  /* useEffect(() => {
     fetchData();
-  }, []);
+  }, []); */
+
+  useEffect(() => {
+    fetchData(1, selectedGroup, selectedSortOption);
+  }, [selectedGroup, selectedSortOption]);
 
   useEffect(() => {
     setMaxpersons(maxadults + maxchild);
   }, [maxadults, maxchild]);
 
-  const fetchData = async (pageNumber = 1) => {
+  //const fetchData = async (pageNumber = 1) => {
+  const fetchData = async (pageNumber = 1, group?: string, sort?: string) => {
     try {
-      const data = await getAllRoomType(pageNumber, 10);
+      
+      //const data = await getAllRoomType(pageNumber, 10);
+      const data = await getAllRoomType(pageNumber, 3, group, sort);
 
       const roomTypeList = data?.data;
 
@@ -511,8 +574,115 @@ export default function Rooms() {
           </form>
         </div>
 
-        {/* Room type Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto pt-10">
+        <div className="flex justify-between items-center mb-0 mt-0 max-w-6xl mx-auto py-0 pt-8">
+          <div className="flex space-x-2">
+            <button 
+              className="px-4 py-2 bg-amber-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                onClick={() => setSelectedGroup('')}
+            >
+                All Types
+            </button>
+            <button 
+              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
+              onClick={() => setSelectedGroup('standard')}
+            >
+                Standard
+            </button>
+            <button 
+              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
+              onClick={() => setSelectedGroup('luxury')}
+            >
+                Luxury
+            </button>
+            <button 
+              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
+              onClick={() => setSelectedGroup('deluxe')}
+            >
+                Deluxe
+            </button>
+            <button 
+              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
+              onClick={() => setSelectedGroup('suites')}
+            >
+                Suites
+            </button>
+          </div>
+
+          {/* Custom Dropdown Component */}
+          <div className="relative w-56" ref={sortdropdownRef}>
+            <button
+              onClick={() => setIsSortOptionOpen(!isSortOptionOpen)}
+              className="flex items-center justify-between w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+            >
+              <span className={selectedSortOption ? "text-gray-800" : "text-gray-500"}>
+                {getDisplayText()}
+              </span>
+              <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isSortOptionOpen ? 'transform rotate-180' : ''}`} />
+              
+            </button>
+
+            {isSortOptionOpen && (
+              <div className="absolute right-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
+                {/* Add gap/space at the top */}
+                <div className="pt-2"></div>
+                
+                {sortOptions.map((group, index) => (
+                  <div key={group.group}>
+                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
+                      {group.group}
+                    </div>
+                    {group.options.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleSortSelect(option.value)}
+                        className="flex items-center justify-between w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <span>{option.label}</span>
+                        {selectedSortOption === option.value && (
+                          <Check className="w-4 h-4 text-gray-700"  />
+                        )}
+                      </button>
+                    ))}
+                    {/* Add spacing between groups */}
+                    {index < sortOptions.length - 1 && (
+                      <div className="border-t border-gray-100 my-1"></div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Reset sorting button */}
+                <button
+                  onClick={() => handleSortSelect("")}
+                  className="w-full px-4 py-3 text-xs font-semibold text-left uppercase text-gray-600 hover:bg-gray-100"
+                >
+                  Reset sorting
+                </button>
+                
+                {/* Add gap/space at the bottom */}
+                {/* <div className="pb-2"></div> */}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {roomtypes.length === 0 ? (
+        <div className="max-w-6xl mx-auto mt-16 text-center">
+          <div className="text-gray-500 text-lg font-medium">
+            No room types found
+          </div>
+          <p className="text-gray-400 text-sm mt-2">
+            Try changing the filter or sort option
+          </p>
+          <button
+            onClick={() => setSelectedGroup('')}
+            className="mt-4 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+          >
+            Reset Filters
+    </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto pt-5">
           {roomtypes.map((roomtype: any, index) => {
             return (
               <div
@@ -635,12 +805,14 @@ export default function Rooms() {
             );
           })}
         </div>
+      )}
 
         <div className="flex justify-between items-center mt-8">
           <button
             onClick={() => {
-              fetchData(page - 1);
+              fetchData(page - 1, selectedGroup, selectedSortOption)
             }}
+            //onClick={() => {fetchData(page - 1)}}
             disabled={page === 1}
             className="disabled:opacity-50 bg-amber-100 rounded-2xl"
           >
@@ -651,8 +823,9 @@ export default function Rooms() {
           </div>
           <button
             onClick={() => {
-              fetchData(page + 1);
+              fetchData(page + 1, selectedGroup, selectedSortOption)
             }}
+            //onClick={() => {fetchData(page + 1)}}
             disabled={page === totalPage}
             className="disabled:opacity-50 bg-amber-100 rounded-full"
           >
