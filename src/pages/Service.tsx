@@ -9,15 +9,7 @@ import {
 import SuccessMessage from "../components/SuccessMessage";
 import ErrorMessage from "../components/ErrorMessage";
 import { NavLink } from "react-router-dom";
-import {
-  CircleArrowLeft,
-  CircleArrowRight,
-  PlusIcon,
-  RotateCcw,
-  Sparkles,
-  SquarePen,
-  Trash2,
-} from "lucide-react";
+import * as Icons from "lucide-react";
 
 export default function Service() {
   const [amenities, setAmenities] = useState([]);
@@ -32,26 +24,79 @@ export default function Service() {
 
   const [editingAmenityId, setEditingAmenityId] = useState<string | null>(null);
 
-  const colorCombinations = [
-    { bgColor: "bg-amber-100", iconColor: "text-amber-600" },
-    { bgColor: "bg-purple-100", iconColor: "text-purple-600" },
-    { bgColor: "bg-green-100", iconColor: "text-green-600" },
-    { bgColor: "bg-blue-100", iconColor: "text-blue-600" },
-    { bgColor: "bg-orange-100", iconColor: "text-orange-600" },
-    { bgColor: "bg-indigo-100", iconColor: "text-indigo-600" },
-    { bgColor: "bg-pink-100", iconColor: "text-pink-600" },
-    { bgColor: "bg-rose-100", iconColor: "text-rose-600" },
-    { bgColor: "bg-teal-100", iconColor: "text-teal-600" },
-    { bgColor: "bg-cyan-100", iconColor: "text-cyan-600" },
-  ];
+  const colorCombinations: Record<
+    string,
+    { bgColor: string; iconColor: string }
+  > = {
+    "Technology & Connectivity": {
+      bgColor: "bg-blue-100",
+      iconColor: "text-blue-700",
+    },
+    "Climate Control": { bgColor: "bg-red-100", iconColor: "text-red-700" },
+    "Kitchen & Dining": {
+      bgColor: "bg-orange-100",
+      iconColor: "text-orange-700",
+    },
+    "Bathroom & Personal Care": {
+      bgColor: "bg-cyan-100",
+      iconColor: "text-cyan-700",
+    },
+    "Bedroom & Comfort": {
+      bgColor: "bg-purple-100",
+      iconColor: "text-purple-700",
+    },
+    "Entertainment & Leisure": {
+      bgColor: "bg-pink-100",
+      iconColor: "text-pink-700",
+    },
+    "Outdoor & Views": { bgColor: "bg-green-100", iconColor: "text-green-700" },
+    "Safety & Security": {
+      bgColor: "bg-yellow-100",
+      iconColor: "text-yellow-700",
+    },
+    "Parking & Transportation": {
+      bgColor: "bg-gray-100",
+      iconColor: "text-gray-700",
+    },
+    "Family & Children": { bgColor: "bg-pink-100", iconColor: "text-pink-700" },
+    "Pet Amenities": { bgColor: "bg-amber-100", iconColor: "text-amber-700" },
+    "Laundry & Cleaning": {
+      bgColor: "bg-blue-100",
+      iconColor: "text-blue-700",
+    },
+    "Wellness & Spa": { bgColor: "bg-teal-100", iconColor: "text-teal-700" },
+    "Business & Work": {
+      bgColor: "bg-indigo-100",
+      iconColor: "text-indigo-700",
+    },
+    "Accessibility": {
+      bgColor: "bg-emerald-100",
+      iconColor: "text-emerald-700",
+    },
+    "Food & Beverage Services": {
+      bgColor: "bg-rose-100",
+      iconColor: "text-rose-700",
+    },
+    "Miscellaneous Services": {
+      bgColor: "bg-slate-100",
+      iconColor: "text-slate-700",
+    },
+  };
 
-  const getColorForAmenity = (amenityName: string) => {
-    let hash = 0;
-    for (let i = 0; i < amenityName.length; i++) {
-      hash = amenityName.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash) % colorCombinations.length;
-    return colorCombinations[index];
+  const getColorForAmenity = (category: string) => {
+    return (
+      colorCombinations[category] ?? {
+        bgColor: "bg-gray-100",
+        iconColor: "text-gray-700",
+      }
+    );
+  };
+
+  // Helper function to get icon component
+  const getIconComponent = (iconName: string | undefined) => {
+    if (!iconName) return Icons.Sparkles;
+    const IconComponent = (Icons as Record<string, any>)[iconName];
+    return IconComponent || Icons.Sparkles;
   };
 
   useEffect(() => {
@@ -61,15 +106,12 @@ export default function Service() {
   const fetchData = async (pageNumber = 1) => {
     try {
       const data = await getAllAmenity(pageNumber, 9);
-
       const amenitiesList = data?.data;
       const amenitiesWithColors = amenitiesList.map((amenity: any) => ({
         ...amenity,
-        ...getColorForAmenity(amenity.amenityname),
+        colorClass: getColorForAmenity(amenity.category),
       }));
 
-      //console.log(data)
-      //setAmenities(data?.data);
       setAmenities(amenitiesWithColors);
       setTotalPage(data?.totalPages);
       setPage(pageNumber);
@@ -108,28 +150,18 @@ export default function Service() {
     }
 
     try {
-      /* const formData = new FormData();
-      formData.append("amenityname", amenityname);
-      formData.append("description", description);
-
-      //const res = await createPost(formData);
-      await createAmenity(formData); */ // remove unused variables and imports
-
       if (editingAmenityId) {
-        // UPDATE existing amenity
         const res = await updateAmenity(editingAmenityId, {
           amenityname,
           description,
         });
         setSuccessMsg(res.message || "Amenity updated successfully!");
       } else {
-        // CREATE new amenity
         const res = await createAmenity({ amenityname, description });
         setSuccessMsg(res.message || "Amenity created successfully!");
       }
 
       await fetchData(1);
-
       handleReset();
     } catch (err: any) {
       const message = err?.response?.data?.message || "Something went wrong!";
@@ -148,7 +180,6 @@ export default function Service() {
 
     try {
       const res = await deleteAmenity(id);
-
       setSuccessMsg(res.message || "Amenity deleted successfully!");
       await fetchData(page);
     } catch (err: any) {
@@ -161,14 +192,12 @@ export default function Service() {
     setAmenityname("");
     setDiscription("");
     setEditingAmenityId(null);
-
     setSuccessMsg("");
     setErrorMsg("");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Pass onClose handlers to auto-dismiss messages */}
       <SuccessMessage message={successMsg} onClose={() => setSuccessMsg("")} />
       <ErrorMessage message={errorMsg} onClose={() => setErrorMsg("")} />
 
@@ -189,9 +218,9 @@ export default function Service() {
             <div className="border border-gray-200 rounded-lg p-5 text-center">
               <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 {editingAmenityId ? (
-                  <RotateCcw className="text-amber-600 w-8 h-8" />
+                  <Icons.RotateCcw className="text-amber-600 w-8 h-8" />
                 ) : (
-                  <PlusIcon className="text-amber-600 w-8 h-8" />
+                  <Icons.PlusIcon className="text-amber-600 w-8 h-8" />
                 )}
               </div>
               <h3 className="text-xl font-semibold text-gray-800 mb-3">
@@ -217,7 +246,7 @@ export default function Service() {
                   />
                 </div>
 
-                {/* Amenity Name Field */}
+                {/* Description Field */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-gray-700 font-medium flex items-center">
@@ -228,7 +257,7 @@ export default function Service() {
                       className="text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95 flex items-center gap-2 px-3 py-1 rounded"
                     >
                       Generate Description
-                      <Sparkles className="h-4 w-4" />
+                      <Icons.Sparkles className="h-4 w-4" />
                     </button>
                   </div>
 
@@ -245,14 +274,14 @@ export default function Service() {
               <div className="flex gap-4">
                 <button
                   onClick={handleSaveAmenity}
-                  className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-102 active:scale-95 w-full"
+                  className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95 w-full"
                 >
                   {editingAmenityId ? "Update" : "Save"}
                 </button>
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-102 active:scale-95 w-full"
+                  className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-5 py-3 mt-5 rounded-lg hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-105 active:scale-95 w-full"
                 >
                   Reset
                 </button>
@@ -263,10 +292,15 @@ export default function Service() {
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto pt-10">
-          {amenities.map((amenity: any, index) => {
+          {/* {amenities.map((amenity: any, index) => { */}
+          {amenities.map((amenity: any) => {
+            const colors = getColorForAmenity(amenity.category);
+            const IconComponent = getIconComponent(amenity.iconName);
+
             return (
               <div
-                key={index}
+                key={amenity._id}
+                //key={index}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEditClick(amenity);
@@ -283,7 +317,7 @@ export default function Service() {
                     }}
                     className="px-2 py-1 rounded-full text-xs bg-green-100"
                   >
-                    <SquarePen className="w-5 h-5 text-green-700" />
+                    <Icons.SquarePen className="w-5 h-5 text-green-700" />
                   </button>
                   <button
                     onClick={(e) => {
@@ -292,15 +326,19 @@ export default function Service() {
                     }}
                     className="px-2 py-1 rounded-full text-xs bg-red-100"
                   >
-                    <Trash2 className="w-5 h-5 text-red-700" />
+                    <Icons.Trash2 className="w-5 h-5 text-red-700" />
                   </button>
                 </div>
 
                 {/* Amenity icon */}
                 <div
-                  className={`w-14 h-14 ${amenity.bgColor} rounded-lg flex items-center justify-center mb-4`}
+                  className={`w-14 h-14 ${colors.bgColor} rounded-lg flex items-center justify-center mb-4`}
                 >
-                  <Sparkles className={amenity.iconColor} size={28} />
+                  <IconComponent
+                    size={28}
+                    className={colors.iconColor}
+                    strokeWidth={2}
+                  />
                 </div>
 
                 {/* Amenity details */}
@@ -315,6 +353,7 @@ export default function Service() {
           })}
         </div>
 
+        {/* Pagination */}
         <div className="flex justify-between items-center mt-8">
           <button
             onClick={() => {
@@ -323,7 +362,7 @@ export default function Service() {
             disabled={page === 1}
             className="disabled:opacity-50 bg-amber-100 rounded-2xl"
           >
-            <CircleArrowLeft className="w-8 h-8 text-amber-800" />
+            <Icons.CircleArrowLeft className="w-8 h-8 text-amber-800" />
           </button>
           <div className="text-sm text-gray-600">
             Page {page} of {totalPage}
@@ -335,7 +374,7 @@ export default function Service() {
             disabled={page === totalPage}
             className="disabled:opacity-50 bg-amber-100 rounded-full"
           >
-            <CircleArrowRight className="w-8 h-8 text-amber-800" />
+            <Icons.CircleArrowRight className="w-8 h-8 text-amber-800" />
           </button>
         </div>
 
