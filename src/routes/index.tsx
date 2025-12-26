@@ -2,6 +2,7 @@ import { lazy, Suspense, type ReactNode } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/authContext"
+import RoomDetail from "../pages/RoomDetail";
 
 const Welcome = lazy(() => import("../pages/Welcome"));
 const Register = lazy(() => import("../pages/Register"));
@@ -62,6 +63,7 @@ export default function Router() {
             <Route path="/service" element={<Service />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/rooms" element={<Rooms />} />
+            <Route path="/rooms/:roomId" element={<RoomDetail />} />
             <Route path="/my-bookings" element={
               <RequireAuth roles={["GUEST"]}>
                 <MyBookings />
