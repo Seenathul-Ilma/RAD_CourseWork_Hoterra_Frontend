@@ -23,9 +23,12 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 //export default function Hotels() {
 export default function Rooms() {
+  const navigate = useNavigate(); // Add this hook
+
   const [roomtypes, setRoomtypes] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
@@ -344,6 +347,11 @@ export default function Rooms() {
     setErrorMsg("");
   };
 
+  // Add this function to handle room card click
+  const handleRoomCardClick = (roomTypeId: string) => {
+    navigate(`/rooms/${roomTypeId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Pass onClose handlers to auto-dismiss messages */}
@@ -530,7 +538,7 @@ export default function Rooms() {
 
                   {/* Image Previews */}
                   {previews.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                    <div className="grid grid-cols-5 md:grid-cols-5 gap-4 mt-4">
                       <p className="text-gray-700 font-medium col-span-full text-left">
                         Selected Images ({previews.length})
                       </p>
@@ -691,6 +699,7 @@ export default function Rooms() {
                   e.stopPropagation();
                   handleEditClick(roomtype);
                 }} */
+                onClick={() => handleRoomCardClick(roomtype._id)}
                 className="relative bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100 group mb-6 flex flex-col"
               >
                 <div className="flex-grow">
@@ -745,7 +754,7 @@ export default function Rooms() {
                         </div>
 
                         {/* Remaining images - Grid (maximum 4 more) */}
-                        {roomtype.roomTypeImageURLs.length > 1 && (
+                        {/* {roomtype.roomTypeImageURLs.length > 1 && (
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {roomtype.roomTypeImageURLs
                               .slice(1, 5)
@@ -758,7 +767,6 @@ export default function Rooms() {
                                     }`}
                                     className="w-full h-32 object-cover rounded-lg"
                                   />
-                                  {/* Show +X for remaining images */}
                                   {imgIndex === 3 &&
                                     roomtype.roomTypeImageURLs.length > 5 && (
                                       <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
@@ -772,9 +780,9 @@ export default function Rooms() {
                                 </div>
                               ))}
                           </div>
-                        )}
+                        )} */}
                       </div>
-                    )}
+                  )}
                 </div>
 
                 <div className="flex gap-3 mt-auto pt-4">
