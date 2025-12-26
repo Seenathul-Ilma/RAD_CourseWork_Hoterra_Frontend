@@ -10,7 +10,7 @@ export const getRoomTypeById = async (id: string) => {
     return res.data
 }
 
-export const getAllRoomType = async (page: number, limit: number, group?: string, sort?: string) => {
+export const getAllRooms = async (page: number, limit: number, group?: string, sort?: string) => {
     const res = await api.get(`/roomtype?group=${group}&sort=${sort}&page=${page}&limit=${limit}`)
     return res.data
 }
