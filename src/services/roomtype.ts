@@ -10,10 +10,24 @@ export const getRoomTypeById = async (id: string) => {
     return res.data
 }
 
-export const getAllRoomType = async (page: number, limit: number, group?: string, sort?: string) => {
+/* export const getAllRoomType = async (page: number, limit: number, group?: string, sort?: string) => {
     const res = await api.get(`/roomtype?group=${group}&sort=${sort}&page=${page}&limit=${limit}`)
     return res.data
-}
+} */
+
+export const getAllRoomType = async (page: number, limit: number, group?: string, sort?: string) => {
+    const res = await api.get("/roomtype", {
+        params: {
+            page,
+            limit,
+            group,
+            sort
+        }
+    });
+
+    return res.data;
+};
+
 
 export const createRoomType = async (data: any) => {
     const res = await api.post("/roomtype/create", data)

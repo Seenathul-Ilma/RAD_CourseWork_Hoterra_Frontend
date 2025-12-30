@@ -63,7 +63,7 @@ export default function Router() {
             <Route path="/service" element={<Service />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/rooms" element={<Rooms />} />
-            <Route path="/rooms/:roomId" element={<RoomDetail />} />
+            <Route path="/rooms/:roomtypeId" element={<RoomDetail />} />
             <Route path="/my-bookings" element={
               <RequireAuth roles={["GUEST"]}>
                 <MyBookings />
