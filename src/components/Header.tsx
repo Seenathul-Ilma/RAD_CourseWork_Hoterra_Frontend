@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useState } from "react";
 import { Hotel, Menu } from "lucide-react";
 import { useAuth } from "../context/authContext"
@@ -24,54 +24,99 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/home"
-              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
-            >
-              Home
-            </Link>
-            <Link
-              to="/service"
-              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
-            >
-              Services
-            </Link>
-            <Link
-              to="/rooms"
-              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
-            >
-              Rooms
-            </Link>
-            <Link
-              to="/contact"
-              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
-            >
-              Contact
-            </Link>
+            <NavLink
+  to="/home"
+  className={({ isActive }) =>
+    `transition-colors duration-300 ${
+      isActive
+        ? "text-amber-700"
+        : "text-gray-700 hover:text-amber-600"
+    }`
+  }
+>
+  Home
+</NavLink>
+
+<NavLink
+  to="/service"
+  className={({ isActive }) =>
+    `transition-colors duration-300 ${
+      isActive
+        ? "text-amber-700"
+        : "text-gray-700 hover:text-amber-600"
+    }`
+  }
+>
+  Services
+</NavLink>
+
+            <NavLink
+  to="/rooms"
+  className={({ isActive }) =>
+    `transition-colors duration-300 ${
+      isActive
+        ? "text-amber-700"
+        : "text-gray-700 hover:text-amber-600"
+    }`
+  }
+>
+  Rooms
+</NavLink>
+            <NavLink
+  to="/contact"
+  className={({ isActive }) =>
+    `transition-colors duration-300 ${
+      isActive
+        ? "text-amber-700"
+        : "text-gray-700 hover:text-amber-600"
+    }`
+  }
+>
+  Contact
+</NavLink>
             {user.roles?.includes("GUEST") && (
             <>
-              <Link
-              to="/my-bookings"
-              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
-            >
-              Bookings
-            </Link>
-            <Link
-              to="/my-stays"
-              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
-            >
-              Stays
-            </Link>
+            <NavLink
+  to="/my-bookings"
+  className={({ isActive }) =>
+    `transition-colors duration-300 ${
+      isActive
+        ? "text-amber-700"
+        : "text-gray-700 hover:text-amber-600"
+    }`
+  }
+>
+  Bookings
+</NavLink>
+            <NavLink
+  to="/my-stays"
+  className={({ isActive }) =>
+    `transition-colors duration-300 ${
+      isActive
+        ? "text-amber-700"
+        : "text-gray-700 hover:text-amber-600"
+    }`
+  }
+>
+  Stays
+</NavLink>
+
             </>
             )}
             {user.roles?.includes("ADMIN") && (
             <>
-              <Link
-              to="/staff"
-              className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
-              >
-                Staffs
-              </Link>
+              <NavLink
+  to="/staff"
+  className={({ isActive }) =>
+    `transition-colors duration-300 ${
+      isActive
+        ? "text-amber-700"
+        : "text-gray-700 hover:text-amber-600"
+    }`
+  }
+>
+  Staff
+</NavLink>
             </>
             )}
             <div className="flex items-center space-x-4">

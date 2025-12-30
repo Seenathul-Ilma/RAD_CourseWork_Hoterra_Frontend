@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import {
   createRoomType,
   deleteRoomType,
@@ -27,7 +33,7 @@ import { useNavigate } from "react-router-dom";
 
 //export default function Hotels() {
 export default function Rooms() {
-  const navigate = useNavigate(); // Add this hook
+  const navigate = useNavigate();
 
   const [roomtypes, setRoomtypes] = useState([]);
   const [page, setPage] = useState(1);
@@ -53,40 +59,49 @@ export default function Rooms() {
     null
   );
 
-  const [selectedGroup, setSelectedGroup] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState("");
   const [isSortOptionOpen, setIsSortOptionOpen] = useState(false);
-  const [selectedSortOption, setSelectedSortOption] = useState('');
+  const [selectedSortOption, setSelectedSortOption] = useState("");
   const sortdropdownRef = useRef<HTMLDivElement>(null);
 
   const sortOptions = [
-    { group: 'Price', options: [
-      { value: 'price-asc', label: 'Low to high' },
-      { value: 'price-desc', label: 'High to low' }
-    ]},
-    { group: 'Alphabet', options: [
-      { value: 'name-asc', label: 'A to Z' },
-      { value: 'name-desc', label: 'Z to A' }
-    ]}
+    {
+      group: "Price",
+      options: [
+        { value: "price-asc", label: "Low to high" },
+        { value: "price-desc", label: "High to low" },
+      ],
+    },
+    {
+      group: "Alphabet",
+      options: [
+        { value: "name-asc", label: "A to Z" },
+        { value: "name-desc", label: "Z to A" },
+      ],
+    },
   ];
 
   const handleSortSelect = (sortValue: string) => {
-    setSelectedSortOption(sortValue);             // Update current sort state
+    setSelectedSortOption(sortValue); // Update current sort state
     setIsSortOptionOpen(false);
-    setPage(1)
+    setPage(1);
     fetchData(1, selectedGroup, sortValue); // Refetch data with new sort
   };
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: any) => {
-      if (sortdropdownRef.current && !sortdropdownRef.current.contains(event.target)) {
+      if (
+        sortdropdownRef.current &&
+        !sortdropdownRef.current.contains(event.target)
+      ) {
         setIsSortOptionOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -98,10 +113,12 @@ export default function Rooms() {
 
   const getDisplayText = () => {
     if (!selectedSortOption) return "Sort rooms by";
-    
+
     // Find the selected option label
     for (const group of sortOptions) {
-      const option = group.options.find(opt => opt.value === selectedSortOption);
+      const option = group.options.find(
+        (opt) => opt.value === selectedSortOption
+      );
       if (option) return option.label;
     }
     return "Sort rooms by";
@@ -140,9 +157,8 @@ export default function Rooms() {
   //const fetchData = async (pageNumber = 1) => {
   const fetchData = async (pageNumber = 1, group?: string, sort?: string) => {
     try {
-      
       //const data = await getAllRoomType(pageNumber, 10);
-      const data = await getAllRoomType(pageNumber, 3, group, sort);
+      const data = await getAllRoomType(pageNumber, 10, group, sort);
 
       const roomTypeList = data?.data;
 
@@ -347,10 +363,18 @@ export default function Rooms() {
     setErrorMsg("");
   };
 
-  // Add this function to handle room card click
+  // to handle room card click
   const handleRoomCardClick = (roomTypeId: string) => {
     navigate(`/rooms/${roomTypeId}`);
   };
+
+  const getGroupButtonClass = ((value: string) =>
+    `px-4 py-2 rounded-lg transition-colors ${
+    selectedGroup === value
+      ? "bg-amber-600 text-white"
+      : "text-gray-700 hover:bg-amber-200"
+    }`
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -584,35 +608,35 @@ export default function Rooms() {
 
         <div className="flex justify-between items-center mb-0 mt-0 max-w-6xl mx-auto py-0 pt-8">
           <div className="flex space-x-2">
-            <button 
-              className="px-4 py-2 bg-amber-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                onClick={() => setSelectedGroup('')}
+            <button
+              className={getGroupButtonClass("")}
+              onClick={() => setSelectedGroup("")}
             >
-                All Types
+              All Types
             </button>
-            <button 
-              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
-              onClick={() => setSelectedGroup('standard')}
+            <button
+              className={getGroupButtonClass("standard")}
+              onClick={() => setSelectedGroup("standard")}
             >
-                Standard
+              Standard
             </button>
-            <button 
-              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
-              onClick={() => setSelectedGroup('luxury')}
+            <button
+              className={getGroupButtonClass("luxury")}
+              onClick={() => setSelectedGroup("luxury")}
             >
-                Luxury
+              Luxury
             </button>
-            <button 
-              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
-              onClick={() => setSelectedGroup('deluxe')}
+            <button
+              className={getGroupButtonClass("deluxe")}
+              onClick={() => setSelectedGroup("deluxe")}
             >
-                Deluxe
+              Deluxe
             </button>
-            <button 
-              className="px-4 py-2 text-gray-600 rounded-lg hover:bg-amber-100 transition-colors"
-              onClick={() => setSelectedGroup('suites')}
+            <button
+              className={getGroupButtonClass("suites")}
+              onClick={() => setSelectedGroup("suites")}
             >
-                Suites
+              Suites
             </button>
           </div>
 
@@ -622,18 +646,25 @@ export default function Rooms() {
               onClick={() => setIsSortOptionOpen(!isSortOptionOpen)}
               className="flex items-center justify-between w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
             >
-              <span className={selectedSortOption ? "text-gray-800" : "text-gray-500"}>
+              <span
+                className={
+                  selectedSortOption ? "text-gray-800" : "text-gray-500"
+                }
+              >
                 {getDisplayText()}
               </span>
-              <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isSortOptionOpen ? 'transform rotate-180' : ''}`} />
-              
+              <ChevronDown
+                className={`w-5 h-5 text-gray-500 transition-transform ${
+                  isSortOptionOpen ? "transform rotate-180" : ""
+                }`}
+              />
             </button>
 
             {isSortOptionOpen && (
               <div className="absolute right-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
                 {/* Add gap/space at the top */}
                 <div className="pt-2"></div>
-                
+
                 {sortOptions.map((group, index) => (
                   <div key={group.group}>
                     <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
@@ -647,7 +678,7 @@ export default function Rooms() {
                       >
                         <span>{option.label}</span>
                         {selectedSortOption === option.value && (
-                          <Check className="w-4 h-4 text-gray-700"  />
+                          <Check className="w-4 h-4 text-gray-700" />
                         )}
                       </button>
                     ))}
@@ -665,96 +696,95 @@ export default function Rooms() {
                 >
                   Reset sorting
                 </button>
-                
+
                 {/* Add gap/space at the bottom */}
                 {/* <div className="pb-2"></div> */}
               </div>
             )}
           </div>
-
         </div>
 
         {roomtypes.length === 0 ? (
-        <div className="max-w-6xl mx-auto mt-16 text-center">
-          <div className="text-gray-500 text-lg font-medium">
-            No room types found
+          <div className="max-w-6xl mx-auto mt-16 text-center">
+            <div className="text-gray-500 text-lg font-medium">
+              No room types found
+            </div>
+            <p className="text-gray-400 text-sm mt-2">
+              Try changing the filter or sort option
+            </p>
+            <button
+              onClick={() => setSelectedGroup("")}
+              className="mt-4 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
+            >
+              Reset Filters
+            </button>
           </div>
-          <p className="text-gray-400 text-sm mt-2">
-            Try changing the filter or sort option
-          </p>
-          <button
-            onClick={() => setSelectedGroup('')}
-            className="mt-4 px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-          >
-            Reset Filters
-    </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto pt-5">
-          {roomtypes.map((roomtype: any, index) => {
-            return (
-              <div
-                key={index}
-                /* onClick={(e) => {
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto pt-5">
+            {roomtypes.map((roomtype: any, index) => {
+              return (
+                <div
+                  key={index}
+                  /* onClick={(e) => {
                   e.stopPropagation();
                   handleEditClick(roomtype);
                 }} */
-                onClick={() => handleRoomCardClick(roomtype._id)}
-                className="relative bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100 group mb-6 flex flex-col"
-              >
-                <div className="flex-grow">
-                  {/* Room type details */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-amber-600 uppercase mb-1">
-                        {roomtype.typename}
-                      </h3>
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="flex items-center text-gray-800">
-                          <span className="text-lg font-bold">
-                            Rs. {roomtype.pricepernight}
-                          </span>
-                          <span className="text-gray-500 text-sm ml-1">
-                            /night
-                          </span>
+                  onClick={() => handleRoomCardClick(roomtype._id)}
+                  className="relative bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100 group mb-6 flex flex-col"
+                >
+                  <div className="flex-grow">
+                    {/* Room type details */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-amber-600 uppercase mb-1">
+                          {roomtype.typename}
+                        </h3>
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className="flex items-center text-gray-800">
+                            <span className="text-lg font-bold">
+                              Rs. {roomtype.pricepernight}
+                            </span>
+                            <span className="text-gray-500 text-sm ml-1">
+                              /night
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-gray-600">
+                            <span className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              {roomtype.maxadults} Adults
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Baby className="w-4 h-4" />
+                              {roomtype.maxchild} Children
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            {roomtype.maxadults} Adults
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Baby className="w-4 h-4" />
-                            {roomtype.maxchild} Children
-                          </span>
-                        </div>
+
+                        <p className="text-gray-600 leading-relaxed">
+                          {roomtype.description}
+                        </p>
                       </div>
-
-                      <p className="text-gray-600 leading-relaxed">
-                        {roomtype.description}
-                      </p>
                     </div>
-                  </div>
 
-                  {/* Availability Batch */}
-                  {/* <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
+                    {/* Availability Batch */}
+                    {/* <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-10">
                   </div> */}
 
-                  {/* Room type images - Show maximum 5 images */}
-                  {roomtype.roomTypeImageURLs &&
-                    roomtype.roomTypeImageURLs.length > 0 && (
-                      <div className="mb-2">
-                        {/* First image - Large */}
-                        <div className="mb-4">
-                          <img
-                            src={roomtype.roomTypeImageURLs[0]}
-                            alt={`${roomtype.typename} - Main`}
-                            className="w-full h-64 object-cover rounded-lg"
-                          />
-                        </div>
+                    {/* Room type images - Show maximum 5 images */}
+                    {roomtype.roomTypeImageURLs &&
+                      roomtype.roomTypeImageURLs.length > 0 && (
+                        <div className="mb-2">
+                          {/* First image - Large */}
+                          <div className="mb-4">
+                            <img
+                              src={roomtype.roomTypeImageURLs[0]}
+                              alt={`${roomtype.typename} - Main`}
+                              className="w-full h-64 object-cover rounded-lg"
+                            />
+                          </div>
 
-                        {/* Remaining images - Grid (maximum 4 more) */}
-                        {/* {roomtype.roomTypeImageURLs.length > 1 && (
+                          {/* Remaining images - Grid (maximum 4 more) */}
+                          {/* {roomtype.roomTypeImageURLs.length > 1 && (
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {roomtype.roomTypeImageURLs
                               .slice(1, 5)
@@ -781,65 +811,67 @@ export default function Rooms() {
                               ))}
                           </div>
                         )} */}
-                      </div>
-                  )}
+                        </div>
+                      )}
+                  </div>
+
+                  <div className="flex gap-3 mt-auto pt-4">
+                    <button
+                      type="button"
+                      className="w-full py-3 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(roomtype);
+                        window.scrollTo({ top: 100, behavior: "smooth" });
+                      }}
+                    >
+                      Update
+                    </button>
+
+                    <button
+                      type="button"
+                      className="w-full py-3 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(roomtype._id);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-
-                <div className="flex gap-3 mt-auto pt-4">
-                  <button
-                    type="button"
-                    className="w-full py-3 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditClick(roomtype);
-                      window.scrollTo({ top: 100, behavior: "smooth" });
-                    }}
-                  >
-                    Update
-                  </button>
-
-                  <button
-                    type="button"
-                    className="w-full py-3 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(roomtype._id);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-        <div className="flex justify-between items-center mt-8">
-          <button
-            onClick={() => {
-              fetchData(page - 1, selectedGroup, selectedSortOption)
-            }}
-            //onClick={() => {fetchData(page - 1)}}
-            disabled={page === 1}
-            className="disabled:opacity-50 bg-amber-100 rounded-2xl"
-          >
-            <CircleArrowLeft className="w-8 h-8 text-amber-800" />
-          </button>
-          <div className="text-sm text-gray-600">
-            Page {page} of {totalPage}
+              );
+            })}
           </div>
-          <button
-            onClick={() => {
-              fetchData(page + 1, selectedGroup, selectedSortOption)
-            }}
-            //onClick={() => {fetchData(page + 1)}}
-            disabled={page === totalPage}
-            className="disabled:opacity-50 bg-amber-100 rounded-full"
-          >
-            <CircleArrowRight className="w-8 h-8 text-amber-800" />
-          </button>
-        </div>
+        )}
+
+        {roomtypes.length > 0 && totalPage > 1 && (
+          <div className="flex justify-between items-center mt-8">
+            <button
+              onClick={() => {
+                fetchData(page - 1, selectedGroup, selectedSortOption);
+              }}
+              //onClick={() => {fetchData(page - 1)}}
+              disabled={page === 1}
+              className="disabled:opacity-50 bg-amber-100 rounded-2xl"
+            >
+              <CircleArrowLeft className="w-8 h-8 text-amber-800" />
+            </button>
+            <div className="text-sm text-gray-600">
+              Page {page} of {totalPage}
+            </div>
+            <button
+              onClick={() => {
+                fetchData(page + 1, selectedGroup, selectedSortOption);
+              }}
+              //onClick={() => {fetchData(page + 1)}}
+              disabled={page === totalPage}
+              className="disabled:opacity-50 bg-amber-100 rounded-full"
+            >
+              <CircleArrowRight className="w-8 h-8 text-amber-800" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
