@@ -129,8 +129,8 @@ export default function RoomDetail() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Format date for display
-  const formatDate = (date: Date) => {
+  // Format date for display (Sat, Jan 3, 2026)
+  const formatDateForDisplay = (date: Date) => {
     return date.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
@@ -899,7 +899,7 @@ export default function RoomDetail() {
                         <input
                           ref={checkinInputRef}
                           type="text"
-                          value={formatDate(checkinDate)}
+                          value={formatDateForDisplay(checkinDate)}
                           onClick={() => {
                             setCheckinPickerOpen(!checkinPickerOpen);
                             setCheckoutPickerOpen(false);
@@ -1013,7 +1013,7 @@ export default function RoomDetail() {
                         <input
                           ref={checkoutInputRef}
                           type="text"
-                          value={formatDate(checkoutDate)}
+                          value={formatDateForDisplay(checkoutDate)}
                           onClick={() => {
                             setCheckoutPickerOpen(!checkoutPickerOpen);
                             setCheckinPickerOpen(false);
