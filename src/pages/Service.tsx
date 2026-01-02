@@ -192,8 +192,8 @@ export default function Service() {
     setAmenityname("");
     setDiscription("");
     setEditingAmenityId(null);
-    setSuccessMsg("");
-    setErrorMsg("");
+    //setSuccessMsg("");
+    //setErrorMsg("");
   };
 
   return (

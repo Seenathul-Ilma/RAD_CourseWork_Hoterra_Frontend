@@ -20,8 +20,8 @@ import {
   Baby,
   Check,
   ChevronDown,
-  CircleArrowLeft,
-  CircleArrowRight,
+  CircleChevronLeft,
+  CircleChevronRight,
   PlusIcon,
   RotateCcw,
   Sparkles,
@@ -359,8 +359,8 @@ export default function Rooms() {
     setNewImages([]);
     setPreviews([]);
     setEditingRoomTypeId(null);
-    setSuccessMsg("");
-    setErrorMsg("");
+    //setSuccessMsg("");
+    //setErrorMsg("");
   };
 
   // to handle room card click
@@ -855,7 +855,7 @@ export default function Rooms() {
               disabled={page === 1}
               className="disabled:opacity-50 bg-amber-100 rounded-2xl"
             >
-              <CircleArrowLeft className="w-8 h-8 text-amber-800" />
+              <CircleChevronLeft className="w-8 h-8 text-amber-800" />
             </button>
             <div className="text-sm text-gray-600">
               Page {page} of {totalPage}
@@ -868,7 +868,7 @@ export default function Rooms() {
               disabled={page === totalPage}
               className="disabled:opacity-50 bg-amber-100 rounded-full"
             >
-              <CircleArrowRight className="w-8 h-8 text-amber-800" />
+              <CircleChevronRight  className="w-8 h-8 text-amber-800" />
             </button>
           </div>
         )}
