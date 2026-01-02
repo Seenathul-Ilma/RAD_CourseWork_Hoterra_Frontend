@@ -13,6 +13,7 @@ const Contact = lazy(() => import("../pages/Contact"));
 const Rooms = lazy(() => import("../pages/Rooms"));
 // const RoomDetail = lazy(() => import("../pages/RoomDetail"))
 const MyBookings = lazy(() => import("../pages/MyBookings"));
+const MakeBooking = lazy(() => import("../pages/MakeBooking"));
 const MyStays = lazy(() => import("../pages/MyStays"));
 const Staff = lazy(() => import("../pages/Staff"));
 
@@ -64,6 +65,7 @@ export default function Router() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/rooms" element={<Rooms />} />
             <Route path="/rooms/:roomtypeId" element={<RoomDetail />} />
+            <Route path="/book" element={<MakeBooking />} />
             <Route path="/my-bookings" element={
               <RequireAuth roles={["GUEST"]}>
                 <MyBookings />
