@@ -1,3 +1,4 @@
+import { useAuth } from "../context/authContext"; // Adjust path based on your setup
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 /* import {
@@ -62,20 +63,24 @@ export default function RoomDetail() {
   const [selectedSortOption, setSelectedSortOption] = useState("");
   const sortdropdownRef = useRef<HTMLDivElement>(null);
 
-  const availabilityFormRef = useRef<HTMLDivElement | null>(null);
-  const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
-  const [isAvailabilityOptionOpen, setIsAvailabilityOptionOpen] =
-    useState(false);
-  const [selectedAvailabilityOption, setSelectedAvailabilityOption] = useState<
-    "today" | "custom"
-  >("today");
-  const availabilitydropdownRef = useRef<HTMLDivElement>(null);
-
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(true);
   const [availableRooms, setAvailableRooms] = useState([]);
-  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  const [availableRoomsPage, setAvailableRoomsPage] = useState(1);
+  const [availableRoomsTotalPage, setAvailableRoomsTotalPage] = useState(1);
+  const [availableRoomsTotalCount, setAvailableRoomsTotalCount] = useState(0);
 
-  const roomsToDisplay =
-    selectedAvailabilityOption === "custom" ? availableRooms : rooms;
+  const [showRoomDetailModal, setShowRoomDetailModal] = useState(false);
+  const [selectedRoomForBooking, setSelectedRoomForBooking] = useState<any>(null);
+
+  const sortOptions = [
+    {
+      group: "Room Number",
+      options: [
+        { value: "num-asc", label: "Low to high" },
+        { value: "num-desc", label: "High to low" },
+      ],
+    },
+  ];
 
   // Date states
   const [checkinDate, setCheckinDate] = useState<Date>(new Date());
@@ -147,8 +152,10 @@ export default function RoomDetail() {
 
   // Calculate price summary
   const nightsCount = calculateNights();
-  const roomCost = 10000 * nightsCount;
-  const taxes = Math.round(roomCost * 0.18);
+  const pricePerNight = roomtype?.pricepernight ?? 0;
+
+  const roomCost = pricePerNight * nightsCount;
+  const taxes = Math.round(roomCost * 0.0);
   const total = roomCost + taxes;
 
   // Calendar functions
@@ -260,91 +267,6 @@ export default function RoomDetail() {
     }
   };
 
-  const handleCheckAvailability = () => {
-    if (roomtypeId) {
-      setPage(1);
-      fetchAvailableRooms(1);
-    }
-  };
-
-  const fetchAvailableRooms = async (page: number = 1, limit: number = 5) => {
-    if (!roomtypeId) return;
-
-    setIsLoadingAvailability(true);
-
-    try {
-      const data = await getAllAvailableRoomsByRoomType(
-        roomtypeId,
-        checkinDate,
-        checkoutDate,
-        page,
-        limit
-      );
-
-      setAvailableRooms(data?.data || []);
-      setTotalPage(data?.totalPages || 1);
-      setPage(page); // update current page
-    } catch (err) {
-      console.error("Error fetching available rooms: ", err);
-      setAvailableRooms([]);
-    } finally {
-      setIsLoadingAvailability(false);
-    }
-  };
-
-  const handleGroupSelect = (group: string) => {
-    setSelectedGroup(group);
-    setSelectedAvailabilityOption("today");
-    setShowAvailabilityForm(false);
-    setAvailableRooms([]);
-    setPage(1);
-  };
-
-  const availabilityOptions = [
-    {
-      group: "Availability",
-      options: [
-        { label: "Today", value: "today" },
-        { label: "Custom Date", value: "custom" },
-      ],
-    },
-  ];
-
-  const getAvailabilityDisplayText = () => {
-    if (!selectedAvailabilityOption) return "Today";
-    if (selectedAvailabilityOption === "today") return "Today";
-    if (selectedAvailabilityOption === "custom") return "Custom Date";
-    return "Today";
-  };
-
-  const handleAvailabilitySelect = (value: "today" | "custom") => {
-    setSelectedAvailabilityOption(value);
-    setIsAvailabilityOptionOpen(false);
-    setPage(1);
-
-    if (value === "today") {
-      // fetch / filter today availability
-      setSelectedGroup("available");
-      setShowAvailabilityForm(false);
-      setAvailableRooms([]); // to clear old data
-    }
-
-    if (value === "custom") {
-      // open date picker or custom logic
-      setShowAvailabilityForm(true);
-    }
-  };
-
-  const sortOptions = [
-    {
-      group: "Room Number",
-      options: [
-        { value: "num-asc", label: "Low to high" },
-        { value: "num-desc", label: "High to low" },
-      ],
-    },
-  ];
-
   useEffect(() => {
     if (!roomtypeId) {
       console.error("roomId is missing");
@@ -353,6 +275,7 @@ export default function RoomDetail() {
     }
 
     fetchRoomDetail(roomtypeId);
+
     //fetchRoomData(roomtypeId, 1, selectedGroup, selectedSortOption);
     fetchRoomData(
       roomtypeId,
@@ -361,6 +284,8 @@ export default function RoomDetail() {
       selectedGroup,
       selectedSortOption
     );
+
+    setIsLoadingAvailability(false);
   }, [roomtypeId, selectedGroup, selectedSortOption]);
 
   const fetchRoomDetail = async (id: string) => {
@@ -415,6 +340,43 @@ export default function RoomDetail() {
     );
   };
 
+  const handleCheckAvailability = () => {
+    if (roomtypeId) {
+      setAvailableRooms([]); // Clear previous results
+      setAvailableRoomsPage(1); // Reset to first page
+      fetchAvailableRooms(1);
+    }
+  };
+
+  const fetchAvailableRooms = async (page: number = 1, limit: number = 10) => {
+    if (!roomtypeId) return;
+
+    setIsLoadingAvailability(true);
+
+    try {
+      const data = await getAllAvailableRoomsByRoomType(
+        roomtypeId,
+        checkinDate,
+        checkoutDate,
+        page,
+        limit
+      );
+
+      setAvailableRooms(data?.data || []);
+      setAvailableRoomsPage(data?.page || 1);
+      setAvailableRoomsTotalPage(data?.totalPages || 1);
+      setAvailableRoomsTotalCount(data?.totalCount || 0);
+    } catch (err) {
+      console.error("Error fetching available rooms: ", err);
+      setAvailableRooms([]);
+      setAvailableRoomsPage(1);
+      setAvailableRoomsTotalPage(1);
+      setAvailableRoomsTotalCount(0);
+    } finally {
+      setIsLoadingAvailability(false);
+    }
+  };
+
   const handleSortSelect = (sortValue: string) => {
     setSelectedSortOption(sortValue); // Update current sort state
     setIsSortOptionOpen(false);
@@ -431,13 +393,6 @@ export default function RoomDetail() {
       ) {
         setIsSortOptionOpen(false);
       }
-
-      if (
-        availabilitydropdownRef.current &&
-        !availabilitydropdownRef.current.contains(event.target)
-      ) {
-        setIsAvailabilityOptionOpen(false);
-      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -445,18 +400,6 @@ export default function RoomDetail() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  useEffect(() => {
-    if (showAvailabilityForm) {
-      availabilityFormRef.current?.scrollIntoView({
-        behavior: "smooth",
-        //block: "start",
-        block: "start",
-      });
-
-      checkinInputRef.current?.focus();
-    }
-  }, [showAvailabilityForm]);
 
   const handleOpenAddRoomModal = () => {
     setOpenAddRoomModal(true);
@@ -646,6 +589,36 @@ export default function RoomDetail() {
     return IconComponent || Icons.Sparkles;
   };
 
+  // Add this function after your other handlers
+  const handleOpenRoomDetailModal = (room: any) => {
+    setSelectedRoomForBooking(room);
+    setShowRoomDetailModal(true);
+  };
+
+  const navigateToBookingPage = (room: any) => {
+  const bookingData = {
+    roomTypeId: roomtypeId,
+    roomTypeName: roomtype?.typename,
+    pricePerNight: roomtype?.pricepernight,
+    maxAdults: roomtype?.maxadults,
+    maxChild: roomtype?.maxchild,
+    description: roomtype?.description,
+    images: roomtype?.roomTypeImageURLs || [],
+    checkinDate: checkinDate,
+    checkoutDate: checkoutDate,
+    nightsCount: nightsCount,
+    totalCost: total,
+    selectedRoom: {
+      id: room._id,
+      roomNumber: room.roomnumber,
+      floor: room.floor,
+      amenities: room.roomamenities
+    }
+  };
+  
+  navigate("/book", { state: { bookingData } });
+};
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
@@ -781,11 +754,7 @@ export default function RoomDetail() {
           {/* Room Details and Booking Form */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8 pt-0">
             {/* Room Details - Left side */}
-            <div
-              className={
-                showAvailabilityForm ? "lg:col-span-2" : "lg:col-span-3"
-              }
-            >
+            <div className="lg:col-span-2">
               <div className="bg-white rounded-xl p-6 border border-gray-100">
                 {/* Price Section */}
                 <div className="mb-8 pb-6 border-b border-gray-200">
@@ -848,7 +817,7 @@ export default function RoomDetail() {
                 </div>
 
                 {/* Description */}
-                <div className="mb-8">
+                <div className="mb-8 pb-6 border-b border-gray-200">
                   <h3 className="text-xl font-semibold text-gray-800 mb-4">
                     Description
                   </h3>
@@ -857,314 +826,791 @@ export default function RoomDetail() {
                   </p>
                 </div>
 
-                {/* Amenities */}
-                {roomtype.amenities && roomtype.amenities.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-6">
-                      Room Amenities
-                    </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {roomtype.amenities.map((amenity: any) => (
-                        <div
-                          key={amenity._id}
-                          className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="w-2 h-2 bg-amber-600 rounded-full"></div>
-                          <span className="text-gray-700 font-medium">
-                            {amenity.name}
-                          </span>
+                {/* Availability Table */}
+                <div className="mb-0">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                    Availability
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed text-lg mb-0">
+                    Select your check-in and check-out dates to view available
+                    rooms.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Booking Form - Right side */}
+            <div className="lg:col-span-1">
+              <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-100 rounded-xl p-6 shadow-lg">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                  Check Availability
+                </h3>
+
+                <div className="space-y-6">
+                  {/* Check-in Date */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Check-in Date
+                    </label>
+                    <div className="relative">
+                      <input
+                        ref={checkinInputRef}
+                        type="text"
+                        value={formatDateForDisplay(checkinDate)}
+                        onClick={() => {
+                          setCheckinPickerOpen(!checkinPickerOpen);
+                          setCheckoutPickerOpen(false);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                        placeholder="Select check-in date"
+                        readOnly
+                      />
+                      <Icons.CalendarClock className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    </div>
+
+                    {/* Check-in Date Picker */}
+                    {checkinPickerOpen && (
+                      <div
+                        ref={checkinPickerRef}
+                        className="absolute z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-80"
+                        style={{ top: "100%", left: 0 }}
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <button
+                            type="button"
+                            onClick={() => navigateMonth("checkin", "prev")}
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                          >
+                            <Icons.ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <h3 className="font-semibold text-gray-800">
+                            {checkinCurrentMonth.toLocaleDateString("en-US", {
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={() => navigateMonth("checkin", "next")}
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                          >
+                            <Icons.ChevronRight className="w-4 h-4" />
+                          </button>
                         </div>
-                      ))}
+                        <div className="grid grid-cols-7 text-center text-xs font-semibold text-gray-500 mb-2">
+                          <div>Sun</div>
+                          <div>Mon</div>
+                          <div>Tue</div>
+                          <div>Wed</div>
+                          <div>Thu</div>
+                          <div>Fri</div>
+                          <div>Sat</div>
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">
+                          {/* {generateCalendarDays(checkinCurrentMonth, "checkin").map( */}
+                          {generateCalendarDays(checkinCurrentMonth).map(
+                            (day, index) => {
+                              const isSelected =
+                                checkinDate.toDateString() ===
+                                day.date.toDateString();
+                              const isToday =
+                                new Date().toDateString() ===
+                                day.date.toDateString();
+                              const isDisabled =
+                                day.isPast || !day.isCurrentMonth;
+
+                              return (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() =>
+                                    !isDisabled &&
+                                    handleDateSelect(day.date, "checkin")
+                                  }
+                                  className={`h-10 w-10 flex items-center justify-center text-sm rounded-full ${
+                                    isDisabled
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-gray-800 hover:bg-amber-100"
+                                  } ${
+                                    isSelected
+                                      ? "bg-amber-600 text-white hover:bg-amber-700"
+                                      : ""
+                                  } ${
+                                    isToday && !isSelected
+                                      ? "bg-amber-100 text-amber-800"
+                                      : ""
+                                  }`}
+                                  disabled={isDisabled}
+                                >
+                                  {day.day}
+                                </button>
+                              );
+                            }
+                          )}
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => handleTodayClick("checkin")}
+                            className="w-full py-2 text-sm text-amber-600 hover:bg-amber-50 rounded-lg"
+                          >
+                            Today
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Check-out Date */}
+                  <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Check-out Date
+                    </label>
+                    <div className="relative">
+                      <input
+                        ref={checkoutInputRef}
+                        type="text"
+                        value={formatDateForDisplay(checkoutDate)}
+                        onClick={() => {
+                          setCheckoutPickerOpen(!checkoutPickerOpen);
+                          setCheckinPickerOpen(false);
+                        }}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+                        placeholder="Select check-out date"
+                        readOnly
+                      />
+                      <Icons.CalendarClock className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                    </div>
+
+                    {/* Check-out Date Picker */}
+                    {checkoutPickerOpen && (
+                      <div
+                        ref={checkoutPickerRef}
+                        className="absolute z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-80"
+                        style={{ top: "100%", left: 0 }}
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <button
+                            type="button"
+                            onClick={() => navigateMonth("checkout", "prev")}
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                          >
+                            <Icons.ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <h3 className="font-semibold text-gray-800">
+                            {checkoutCurrentMonth.toLocaleDateString("en-US", {
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </h3>
+                          <button
+                            type="button"
+                            onClick={() => navigateMonth("checkout", "next")}
+                            className="p-2 hover:bg-gray-100 rounded-lg"
+                          >
+                            <Icons.ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-7 text-center text-xs font-semibold text-gray-500 mb-2">
+                          <div>Sun</div>
+                          <div>Mon</div>
+                          <div>Tue</div>
+                          <div>Wed</div>
+                          <div>Thu</div>
+                          <div>Fri</div>
+                          <div>Sat</div>
+                        </div>
+                        <div className="grid grid-cols-7 gap-1">
+                          {/* {generateCalendarDays(checkoutCurrentMonth, "checkout").map( */}
+                          {generateCalendarDays(checkoutCurrentMonth).map(
+                            (day, index) => {
+                              const isSelected =
+                                checkoutDate.toDateString() ===
+                                day.date.toDateString();
+                              const isToday =
+                                new Date().toDateString() ===
+                                day.date.toDateString();
+                              const isDisabled =
+                                day.isPast ||
+                                !day.isCurrentMonth ||
+                                day.date <= checkinDate;
+
+                              return (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() =>
+                                    !isDisabled &&
+                                    handleDateSelect(day.date, "checkout")
+                                  }
+                                  className={`h-10 w-10 flex items-center justify-center text-sm rounded-full ${
+                                    isDisabled
+                                      ? "text-gray-400 cursor-not-allowed"
+                                      : "text-gray-800 hover:bg-amber-100"
+                                  } ${
+                                    isSelected
+                                      ? "bg-amber-600 text-white hover:bg-amber-700"
+                                      : ""
+                                  } ${
+                                    isToday && !isSelected
+                                      ? "bg-amber-100 text-amber-800"
+                                      : ""
+                                  }`}
+                                  disabled={isDisabled}
+                                >
+                                  {day.day}
+                                </button>
+                              );
+                            }
+                          )}
+                        </div>
+                        <div className="mt-4 pt-3 border-t border-gray-200">
+                          <button
+                            type="button"
+                            onClick={() => handleTodayClick("checkout")}
+                            className="w-full py-2 text-sm text-amber-600 hover:bg-amber-50 rounded-lg"
+                          >
+                            Today
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Price Summary */}
+                  <div className="border-t border-gray-200 pt-6 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">
+                        {nightsCount} {nightsCount === 1 ? "night" : "nights"} ×{" "}
+                        {roomtype.pricepernight}
+                      </span>
+                      <span className="font-medium">Rs. {roomCost}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Taxes & fees (0%)</span>
+                      <span className="font-medium">Rs. {taxes}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-4">
+                      <span>Total</span>
+                      <span>Rs. {total}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={handleCheckAvailability}
+                      className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl"
+                    >
+                      Check Now
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/rooms")}
+                      className="w-full py-3 border-2 border-amber-600 text-amber-600 font-semibold rounded-lg hover:bg-amber-50 transition-all"
+                    >
+                      View Other Rooms
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Available Rooms Table */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 p-8 pt-0">
+            {/* Available Rooms Table Section */}
+            <div className="lg:col-span-3">
+              <div className="container bg-white rounded-xl border border-gray-100">
+                {/* Check if availability has been checked at least once */}
+                {availableRooms.length > 0 ? (
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+                      <h3 className="text-xl font-bold text-slate-800">
+                        Available Rooms
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        Found {availableRoomsTotalCount} rooms available from{" "}
+                        {formatDateForDisplay(checkinDate)} to{" "}
+                        {formatDateForDisplay(checkoutDate)}
+                      </p>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr>
+                            <th className="text-left p-6 text-sm uppercase font-semibold text-slate-600">
+                              Room No.
+                            </th>
+                            <th className="text-left p-6 text-sm uppercase font-semibold text-slate-600">
+                              Floor
+                            </th>
+                            <th className="text-left p-6 text-sm uppercase font-semibold text-slate-600">
+                              Amenities
+                            </th>
+                            <th className="text-left p-6 text-sm uppercase font-semibold text-slate-600">
+                              Action
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {availableRooms.map((room: any) => (
+                            <tr
+                              key={room._id}
+                              className="border-b border-slate-200/50 hover:bg-gray-100 hover:shadow transition-colors"
+                            >
+                              <td className="p-6 text-slate-700">
+                                {room.roomnumber}
+                              </td>
+                              <td className="p-6 text-slate-700">
+                                {getFloorLabel(room.floor)}
+                              </td>
+                              <td className="p-6 text-slate-700">
+                                {room.roomamenities &&
+                                room.roomamenities.length > 0
+                                  ? room.roomamenities
+                                      .map((a: any) =>
+                                        typeof a === "string" ? a : a.name
+                                      )
+                                      .join(", ")
+                                  : "No amenities"}
+                              </td>
+                              <td className="px-6 py-4">
+                                <button
+                                  //onClick={() => handleOpenRoomDetailModal(room)}
+                                  onClick={() => navigateToBookingPage(room)}
+                                  className="p-3 bg-gradient-to-r from-amber-600 to-amber-800 text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity duration-300"
+                                >
+                                  Book Now
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {/* Pagination for Available Rooms */}
+                      {availableRoomsTotalPage > 1 && (
+                        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                              Showing{" "}
+                              <span className="font-semibold">
+                                {(availableRoomsPage - 1) * 10 + 1}
+                              </span>{" "}
+                              to{" "}
+                              <span className="font-semibold">
+                                {Math.min(
+                                  availableRoomsPage * 10,
+                                  availableRoomsTotalCount
+                                )}
+                              </span>{" "}
+                              of{" "}
+                              <span className="font-semibold">
+                                {availableRoomsTotalCount}
+                              </span>{" "}
+                              rooms
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() =>
+                                  fetchAvailableRooms(availableRoomsPage - 1)
+                                }
+                                disabled={availableRoomsPage === 1}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Previous
+                              </button>
+
+                              {/* Page Numbers */}
+                              {(() => {
+                                const pages = [];
+                                const maxVisiblePages = 5;
+                                let startPage = Math.max(
+                                  1,
+                                  availableRoomsPage -
+                                    Math.floor(maxVisiblePages / 2)
+                                );
+                                let endPage = Math.min(
+                                  availableRoomsTotalPage,
+                                  startPage + maxVisiblePages - 1
+                                );
+
+                                // Adjust start page if we're near the end
+                                if (endPage - startPage + 1 < maxVisiblePages) {
+                                  startPage = Math.max(
+                                    1,
+                                    endPage - maxVisiblePages + 1
+                                  );
+                                }
+
+                                // First page with ellipsis if needed
+                                if (startPage > 1) {
+                                  pages.push(
+                                    <button
+                                      key={1}
+                                      onClick={() => fetchAvailableRooms(1)}
+                                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                      1
+                                    </button>
+                                  );
+                                  if (startPage > 2) {
+                                    pages.push(
+                                      <span
+                                        key="ellipsis1"
+                                        className="px-2 text-gray-500"
+                                      >
+                                        ...
+                                      </span>
+                                    );
+                                  }
+                                }
+
+                                // Visible page range
+                                for (let i = startPage; i <= endPage; i++) {
+                                  pages.push(
+                                    <button
+                                      key={i}
+                                      onClick={() => fetchAvailableRooms(i)}
+                                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                        availableRoomsPage === i
+                                          ? "text-white bg-amber-600 border border-amber-600"
+                                          : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                                      }`}
+                                    >
+                                      {i}
+                                    </button>
+                                  );
+                                }
+
+                                // Last page with ellipsis if needed
+                                if (endPage < availableRoomsTotalPage) {
+                                  if (endPage < availableRoomsTotalPage - 1) {
+                                    pages.push(
+                                      <span
+                                        key="ellipsis2"
+                                        className="px-2 text-gray-500"
+                                      >
+                                        ...
+                                      </span>
+                                    );
+                                  }
+                                  pages.push(
+                                    <button
+                                      key={availableRoomsTotalPage}
+                                      onClick={() =>
+                                        fetchAvailableRooms(
+                                          availableRoomsTotalPage
+                                        )
+                                      }
+                                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                      {availableRoomsTotalPage}
+                                    </button>
+                                  );
+                                }
+
+                                return pages;
+                              })()}
+
+                              <button
+                                onClick={() =>
+                                  fetchAvailableRooms(availableRoomsPage + 1)
+                                }
+                                disabled={
+                                  availableRoomsPage === availableRoomsTotalPage
+                                }
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Next
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : isLoadingAvailability ? (
+                  // Show loading only when actively checking
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+                      <h3 className="text-xl font-bold text-slate-800">
+                        Checking Availability
+                      </h3>
+                    </div>
+                    <div className="p-8 text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
+                      <p className="mt-4 text-gray-600">
+                        Finding available rooms...
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  // Initial state - no check performed yet
+                  <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+                      <h3 className="text-xl font-bold text-slate-800">
+                        Available Rooms
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        Select dates and click "Check Now" to see available
+                        rooms
+                      </p>
+                    </div>
+                    <div className="p-8 text-center">
+                      <div className="text-gray-400 mb-4">
+                        <Icons.CalendarClock className="w-16 h-16 mx-auto" />
+                      </div>
+                      <p className="text-gray-500 mb-4">
+                        No availability check performed yet
+                      </p>
+                      <button
+                        onClick={handleCheckAvailability}
+                        className="px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
+                      >
+                        Check Availability
+                      </button>
                     </div>
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Booking Form - Right side */}
-            {showAvailabilityForm && (
-              <div className="lg:col-span-1">
-                <div className="bg-gradient-to-br from-amber-50 to-white border border-amber-100 rounded-xl p-6 shadow-lg">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                    Check Availability
-                  </h3>
-
-                  <div className="space-y-6">
-                    {/* Check-in Date */}
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Check-in Date
-                      </label>
-                      <div className="relative">
-                        <input
-                          ref={checkinInputRef}
-                          type="text"
-                          value={formatDateForDisplay(checkinDate)}
-                          onClick={() => {
-                            setCheckinPickerOpen(!checkinPickerOpen);
-                            setCheckoutPickerOpen(false);
-                          }}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
-                          placeholder="Select check-in date"
-                          readOnly
-                        />
-                        <Icons.CalendarClock className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                      </div>
-
-                      {/* Check-in Date Picker */}
-                      {checkinPickerOpen && (
-                        <div
-                          ref={checkinPickerRef}
-                          className="absolute z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-80"
-                          style={{ top: "100%", left: 0 }}
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <button
-                              type="button"
-                              onClick={() => navigateMonth("checkin", "prev")}
-                              className="p-2 hover:bg-gray-100 rounded-lg"
-                            >
-                              <Icons.ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <h3 className="font-semibold text-gray-800">
-                              {checkinCurrentMonth.toLocaleDateString("en-US", {
-                                month: "long",
-                                year: "numeric",
-                              })}
-                            </h3>
-                            <button
-                              type="button"
-                              onClick={() => navigateMonth("checkin", "next")}
-                              className="p-2 hover:bg-gray-100 rounded-lg"
-                            >
-                              <Icons.ChevronRight className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-7 text-center text-xs font-semibold text-gray-500 mb-2">
-                            <div>Sun</div>
-                            <div>Mon</div>
-                            <div>Tue</div>
-                            <div>Wed</div>
-                            <div>Thu</div>
-                            <div>Fri</div>
-                            <div>Sat</div>
-                          </div>
-                          <div className="grid grid-cols-7 gap-1">
-                            {/* {generateCalendarDays(checkinCurrentMonth, "checkin").map( */}
-                            {generateCalendarDays(checkinCurrentMonth).map(
-                              (day, index) => {
-                                const isSelected =
-                                  checkinDate.toDateString() ===
-                                  day.date.toDateString();
-                                const isToday =
-                                  new Date().toDateString() ===
-                                  day.date.toDateString();
-                                const isDisabled =
-                                  day.isPast || !day.isCurrentMonth;
-
-                                return (
-                                  <button
-                                    key={index}
-                                    type="button"
-                                    onClick={() =>
-                                      !isDisabled &&
-                                      handleDateSelect(day.date, "checkin")
-                                    }
-                                    className={`h-10 w-10 flex items-center justify-center text-sm rounded-full ${
-                                      isDisabled
-                                        ? "text-gray-400 cursor-not-allowed"
-                                        : "text-gray-800 hover:bg-amber-100"
-                                    } ${
-                                      isSelected
-                                        ? "bg-amber-600 text-white hover:bg-amber-700"
-                                        : ""
-                                    } ${
-                                      isToday && !isSelected
-                                        ? "bg-amber-100 text-amber-800"
-                                        : ""
-                                    }`}
-                                    disabled={isDisabled}
-                                  >
-                                    {day.day}
-                                  </button>
-                                );
-                              }
-                            )}
-                          </div>
-                          <div className="mt-4 pt-3 border-t border-gray-200">
-                            <button
-                              type="button"
-                              onClick={() => handleTodayClick("checkin")}
-                              className="w-full py-2 text-sm text-amber-600 hover:bg-amber-50 rounded-lg"
-                            >
-                              Today
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Check-out Date */}
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Check-out Date
-                      </label>
-                      <div className="relative">
-                        <input
-                          ref={checkoutInputRef}
-                          type="text"
-                          value={formatDateForDisplay(checkoutDate)}
-                          onClick={() => {
-                            setCheckoutPickerOpen(!checkoutPickerOpen);
-                            setCheckinPickerOpen(false);
-                          }}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
-                          placeholder="Select check-out date"
-                          readOnly
-                        />
-                        <Icons.CalendarClock className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                      </div>
-
-                      {/* Check-out Date Picker */}
-                      {checkoutPickerOpen && (
-                        <div
-                          ref={checkoutPickerRef}
-                          className="absolute z-50 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-80"
-                          style={{ top: "100%", left: 0 }}
-                        >
-                          <div className="flex items-center justify-between mb-4">
-                            <button
-                              type="button"
-                              onClick={() => navigateMonth("checkout", "prev")}
-                              className="p-2 hover:bg-gray-100 rounded-lg"
-                            >
-                              <Icons.ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <h3 className="font-semibold text-gray-800">
-                              {checkoutCurrentMonth.toLocaleDateString(
-                                "en-US",
-                                {
-                                  month: "long",
-                                  year: "numeric",
-                                }
-                              )}
-                            </h3>
-                            <button
-                              type="button"
-                              onClick={() => navigateMonth("checkout", "next")}
-                              className="p-2 hover:bg-gray-100 rounded-lg"
-                            >
-                              <Icons.ChevronRight className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-7 text-center text-xs font-semibold text-gray-500 mb-2">
-                            <div>Sun</div>
-                            <div>Mon</div>
-                            <div>Tue</div>
-                            <div>Wed</div>
-                            <div>Thu</div>
-                            <div>Fri</div>
-                            <div>Sat</div>
-                          </div>
-                          <div className="grid grid-cols-7 gap-1">
-                            {/* {generateCalendarDays(checkoutCurrentMonth, "checkout").map( */}
-                            {generateCalendarDays(checkoutCurrentMonth).map(
-                              (day, index) => {
-                                const isSelected =
-                                  checkoutDate.toDateString() ===
-                                  day.date.toDateString();
-                                const isToday =
-                                  new Date().toDateString() ===
-                                  day.date.toDateString();
-                                const isDisabled =
-                                  day.isPast ||
-                                  !day.isCurrentMonth ||
-                                  day.date <= checkinDate;
-
-                                return (
-                                  <button
-                                    key={index}
-                                    type="button"
-                                    onClick={() =>
-                                      !isDisabled &&
-                                      handleDateSelect(day.date, "checkout")
-                                    }
-                                    className={`h-10 w-10 flex items-center justify-center text-sm rounded-full ${
-                                      isDisabled
-                                        ? "text-gray-400 cursor-not-allowed"
-                                        : "text-gray-800 hover:bg-amber-100"
-                                    } ${
-                                      isSelected
-                                        ? "bg-amber-600 text-white hover:bg-amber-700"
-                                        : ""
-                                    } ${
-                                      isToday && !isSelected
-                                        ? "bg-amber-100 text-amber-800"
-                                        : ""
-                                    }`}
-                                    disabled={isDisabled}
-                                  >
-                                    {day.day}
-                                  </button>
-                                );
-                              }
-                            )}
-                          </div>
-                          <div className="mt-4 pt-3 border-t border-gray-200">
-                            <button
-                              type="button"
-                              onClick={() => handleTodayClick("checkout")}
-                              className="w-full py-2 text-sm text-amber-600 hover:bg-amber-50 rounded-lg"
-                            >
-                              Today
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Price Summary */}
-                    <div className="border-t border-gray-200 pt-6 space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">
-                          {nightsCount} {nightsCount === 1 ? "night" : "nights"}{" "}
-                          × Rs. 10000
-                        </span>
-                        <span className="font-medium">Rs. {roomCost}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Taxes & fees (0%)</span>
-                        <span className="font-medium">Rs. {taxes}</span>
-                      </div>
-                      <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-3">
-                        <span>Total</span>
-                        <span>Rs. {total}</span>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="space-y-3">
-                      <button
-                        type="button"
-                        onClick={handleCheckAvailability}
-                        className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl"
-                      >
-                        Check Now
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => navigate("/rooms")}
-                        className="w-full py-3 border-2 border-amber-600 text-amber-600 font-semibold rounded-lg hover:bg-amber-50 transition-all"
-                      >
-                        View Other Rooms
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Room Detail Modal */}
+{showRoomDetailModal && selectedRoomForBooking && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+      {/* Modal Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-amber-50 to-amber-100">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">
+            Room No. {selectedRoomForBooking.roomnumber} – Overview
+          </h2>
+          <p className="text-sm text-gray-600">
+            Complete information about this room
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setShowRoomDetailModal(false);
+            setSelectedRoomForBooking(null);
+          }}
+          className="text-gray-600 hover:text-gray-900 transition p-2 hover:bg-amber-200 rounded-lg"
+        >
+          <Icons.X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Modal Content */}
+      <div className="p-6 space-y-6">
+        {/* Room Information Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column - Basic Info */}
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg border border-cyan-200">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Icons.Info className="w-4 h-4" />
+                Basic Information
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Room Number:</span>
+                  <span className="font-semibold text-gray-800">
+                    {selectedRoomForBooking.roomnumber}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Floor:</span>
+                  <span className="font-semibold text-gray-800">
+                    {getFloorLabel(selectedRoomForBooking.floor)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Room Type:</span>
+                  <span className="font-semibold text-amber-700">
+                    {roomtype?.typename}
+                  </span>
+                </div>
+                
+              </div>
+            </div>
+
+            {/* Price Information */}
+            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+              <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                <Icons.DollarSign className="w-4 h-4" />
+                Pricing Details
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Price per night:</span>
+                  <span className="font-bold text-gray-800">
+                    Rs. {roomtype?.pricepernight}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Selected dates:</span>
+                  <span className="font-medium text-gray-800">
+                    {nightsCount} night{nightsCount !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="border-t border-amber-200 pt-2 mt-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total price:</span>
+                    <span className="text-lg font-bold text-amber-700">
+                      Rs. {total}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Inclusive of all taxes and fees
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Amenities & Dates */}
+          <div className="space-y-4">
+            {/* Amenities Section */}
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <Icons.Star className="w-4 h-4" />
+                Room Amenities
+              </h3>
+              {selectedRoomForBooking.roomamenities && 
+               selectedRoomForBooking.roomamenities.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {selectedRoomForBooking.roomamenities.map(
+                    (amenity: any, idx: number) => {
+                      const IconComponent = getIconComponent(
+                        typeof amenity === "string" ? "Sparkles" : amenity.icon
+                      );
+                      return (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100"
+                        >
+                          <IconComponent className="w-4 h-4" />
+                          {typeof amenity === "string" ? amenity : amenity.name}
+                        </span>
+                      );
+                    }
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">No amenities listed</p>
+              )}
+            </div>
+
+            {/* Selected Dates Section */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="font-semibold text-blue-700 mb-3 flex items-center gap-2">
+                <Icons.Calendar className="w-4 h-4" />
+                Selected Dates
+              </h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-in:</span>
+                  <span className="font-bold text-gray-800">
+          {formatDateForDisplay(checkinDate)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-out:</span>
+                  <span className="font-bold text-gray-800">
+          {formatDateForDisplay(checkoutDate)}
+                  </span>
+                </div>
+                <div className="pt-3 border-t border-blue-200">
+                  <p className="text-sm text-blue-600">
+                    Total stay: {nightsCount} night{nightsCount !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Room Type Features */}
+        {roomtype && (
+          <div className="bg-gradient-to-r from-amber-50 to-amber-100 p-4 rounded-lg border border-amber-200">
+            <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <Icons.Home className="w-4 h-4" />
+              Room Capacity & Details
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-amber-100 rounded-full mb-2">
+                  <Icons.Users className="w-5 h-5 text-amber-700" />
+                </div>
+                <p className="text-sm text-gray-600">Adults</p>
+                <p className="font-bold text-gray-800">{roomtype.maxadults}</p>
+              </div>
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-amber-100 rounded-full mb-2">
+                  <Icons.Baby className="w-5 h-5 text-amber-700" />
+                </div>
+                <p className="text-sm text-gray-600">Children</p>
+                <p className="font-bold text-gray-800">{roomtype.maxchild}</p>
+              </div>
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-amber-100 rounded-full mb-2">
+                  <Icons.Users className="w-5 h-5 text-amber-700" />
+                </div>
+                <p className="text-sm text-gray-600">Total Persons</p>
+                <p className="font-bold text-gray-800">
+                  {roomtype.maxpersons || roomtype.maxadults + roomtype.maxchild}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Description */}
+        {roomtype?.description && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <Icons.FileText className="w-4 h-4" />
+              Description
+            </h3>
+            <p className="text-gray-600 leading-relaxed">
+              {roomtype.description}
+            </p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-4 pt-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              // You can add actual booking logic here
+              //setSuccessMsg(`Room ${selectedRoomForBooking.roomnumber} selected for booking!`);
+              //setShowRoomDetailModal(false);
+              //setSelectedRoomForBooking(null);
+            }}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all shadow hover:shadow-md"
+          >
+            Confirm Booking
+          </button>
+          <button
+            onClick={() => {
+              setShowRoomDetailModal(false);
+              setSelectedRoomForBooking(null);
+            }}
+            className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-all"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
         {openAddRoomModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -1343,103 +1789,37 @@ export default function RoomDetail() {
             <div className="flex space-x-2">
               <button
                 className={getGroupButtonClass("")}
-                onClick={() => handleGroupSelect("")}
+                onClick={() => setSelectedGroup("")}
               >
                 All Rooms
               </button>
               <button
                 className={getGroupButtonClass("available")}
-                onClick={() => handleGroupSelect("available")}
+                onClick={() => setSelectedGroup("available")}
               >
                 Available
               </button>
               <button
                 className={getGroupButtonClass("booked")}
-                onClick={() => handleGroupSelect("booked")}
+                onClick={() => setSelectedGroup("booked")}
               >
                 Booked
               </button>
               <button
                 className={getGroupButtonClass("occupied")}
-                onClick={() => handleGroupSelect("occupied")}
+                onClick={() => setSelectedGroup("occupied")}
               >
                 Occupied
               </button>
               <button
                 className={getGroupButtonClass("undermaintenance")}
-                onClick={() => handleGroupSelect("undermaintenance")}
+                onClick={() => setSelectedGroup("undermaintenance")}
               >
                 Maintenance
               </button>
             </div>
 
             <div className="flex gap-3">
-              {selectedGroup === "available" && (
-                <div className="relative w-40" ref={availabilitydropdownRef}>
-                  <button
-                    onClick={() =>
-                      setIsAvailabilityOptionOpen(!isAvailabilityOptionOpen)
-                    }
-                    className="flex items-center justify-between w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                  >
-                    <span
-                      className={
-                        selectedAvailabilityOption
-                          ? "text-gray-800"
-                          : "text-gray-500"
-                      }
-                    >
-                      {getAvailabilityDisplayText()}
-                    </span>
-                    <Icons.ChevronDown
-                      className={`w-5 h-5 text-gray-500 transition-transform ${
-                        isAvailabilityOptionOpen ? "transform rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-
-                  {isAvailabilityOptionOpen && (
-                    <div className="absolute right-0 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden">
-                      {/* Add gap/space at the top */}
-                      <div className="pt-2"></div>
-
-                      {availabilityOptions.map((group) => (
-                        <div key={group.group}>
-                          <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50">
-                            {group.group}
-                          </div>
-
-                          {group.options.map((option) => (
-                            <button
-                              key={option.value}
-                              onClick={() =>
-                                handleAvailabilitySelect(
-                                  option.value as "today" | "custom"
-                                )
-                              }
-                              className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                            >
-                              <span>{option.label}</span>
-                              {selectedAvailabilityOption === option.value && (
-                                <Icons.Check className="w-4 h-4 text-gray-700" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      ))}
-
-                      {/* Reset */}
-                      <button
-                        onClick={() => handleAvailabilitySelect("today")}
-                        className="w-full px-4 py-3 text-xs font-semibold text-left uppercase text-gray-600 hover:bg-gray-100"
-                      >
-                        Reset (Today)
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
               <button
                 onClick={handleOpenAddRoomModal}
                 className=" inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
@@ -1512,7 +1892,7 @@ export default function RoomDetail() {
             </div>
           </div>
 
-          {roomsToDisplay.length === 0 ? (
+          {rooms.length === 0 ? (
             <div className="max-w-6xl mx-auto mt-16 text-center">
               <div className="text-gray-500 text-lg font-medium">
                 No rooms found
@@ -1529,7 +1909,7 @@ export default function RoomDetail() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 max-w-6xl mx-auto pt-5">
-              {roomsToDisplay.map((room: any, index) => (
+              {rooms.map((room: any, index) => (
                 <div key={index}>
                   {/* Room Card */}
                   <div className="relative bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-200 group mb-2 hover:border-amber-200">
@@ -1556,9 +1936,7 @@ export default function RoomDetail() {
 
                           <span
                             className={`inline-flex items-center gap-1.5 px-4 py-1 rounded-full text-sm font-medium border ${
-                              selectedAvailabilityOption === "custom"
-                                ? "bg-green-100 text-green-800 border-green-200"
-                                : room.availability === "AVAILABLE"
+                              room.availability === "AVAILABLE"
                                 ? "bg-green-100 text-green-800 border-green-200"
                                 : room.availability === "BOOKED"
                                 ? "bg-blue-100 text-blue-800 border-blue-200"
@@ -1569,15 +1947,7 @@ export default function RoomDetail() {
                                 : "bg-gray-100 text-gray-800 border-gray-200"
                             }`}
                           >
-                            {selectedAvailabilityOption === "custom"
-                              ? `AVAILABLE (${checkinDate.toLocaleDateString(
-                                  "en-US",
-                                  { month: "short", day: "numeric" }
-                                )} - ${checkoutDate.toLocaleDateString(
-                                  "en-US",
-                                  { month: "short", day: "numeric" }
-                                )})`
-                              : room.availability === "UNDER_MAINTENANCE"
+                            {room.availability === "UNDER_MAINTENANCE"
                               ? "UNDER MAINTENANCE"
                               : room.availability}
                           </span>
@@ -1633,80 +2003,66 @@ export default function RoomDetail() {
 
                   {/* Update button below the card, right side */}
                   <div className="flex justify-end mb-4 gap-2">
-                    {selectedAvailabilityOption !== "custom" ? (
-                      <>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 px-4 py-1 rounded-bl-lg rounded-tr-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900"
-                          onClick={() => handleEditRoomClick(room)}
-                        >
-                          Update
-                        </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 px-4 py-1 rounded-bl-lg rounded-tr-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
+                      onClick={() => {
+                        //e.stopPropagation();
+                        handleEditRoomClick(room);
+                        //window.scrollTo({ top: 100, behavior: "smooth" });
+                      }}
+                    >
+                      Update
+                    </button>
 
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-bl-lg rounded-tr-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900"
-                          onClick={() => handleDeleteRoom(room)}
-                        >
-                          Delete
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        className="inline-flex items-center gap-1.5 px-4 py-1 rounded-bl-lg rounded-tr-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900"
-                        //onClick={() => handleRoomBookClick(room)}
-                      >
-                        Book Now
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-bl-lg rounded-tr-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
+                      onClick={() => {
+                        //e.stopPropagation();
+                        handleDeleteRoom(room);
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {roomsToDisplay.length > 0 && totalPage > 1 && roomtypeId && (
+          {rooms.length > 0 && totalPage > 1 && roomtypeId && (
             <div className="flex justify-between items-center mt-8">
-              {/* Previous Page */}
               <button
                 onClick={() => {
-                  if (selectedAvailabilityOption === "custom") {
-                    fetchAvailableRooms(page - 1);
-                  } else {
-                    fetchRoomData(
-                      roomtypeId,
-                      page - 1,
-                      selectedGroup,
-                      selectedSortOption
-                    );
-                  }
+                  fetchRoomData(
+                    roomtypeId,
+                    page - 1,
+                    //searchingTerm,
+                    selectedGroup,
+                    selectedSortOption
+                  );
                 }}
+                //onClick={() => {fetchData(page - 1)}}
                 disabled={page === 1}
                 className="disabled:opacity-50 bg-amber-100 rounded-2xl"
               >
                 <Icons.CircleChevronLeft className="w-8 h-8 text-amber-800" />
               </button>
-
-              {/* Page Info */}
               <div className="text-sm text-gray-600">
                 Page {page} of {totalPage}
               </div>
-
-              {/* Next Page */}
               <button
                 onClick={() => {
-                  if (selectedAvailabilityOption === "custom") {
-                    fetchAvailableRooms(page + 1);
-                  } else {
-                    fetchRoomData(
-                      roomtypeId,
-                      page + 1,
-                      selectedGroup,
-                      selectedSortOption
-                    );
-                  }
+                  fetchRoomData(
+                    roomtypeId,
+                    page + 1,
+                    //searchingTerm,
+                    selectedGroup,
+                    selectedSortOption
+                  );
                 }}
+                //onClick={() => {fetchData(page + 1)}}
                 disabled={page === totalPage}
                 className="disabled:opacity-50 bg-amber-100 rounded-full"
               >
