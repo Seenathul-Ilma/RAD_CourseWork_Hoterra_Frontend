@@ -1,10 +1,10 @@
-
 export default function Footer() {
-  
   return (
-    <footer className="bottom-0 left-0 w-full bg-white shadow-md z-50" style={{fontFamily:"poppins"}}>
-      <div className="container mx-auto text-center text-gray-700">
-        <p>© 2025 Hoterra. All rights reserved.</p>
+    <footer className="w-full bg-white border-t border-gray-100 py-4" style={{ fontFamily: "Poppins" }}>
+      <div className="container mx-auto px-4 text-center">
+        <p className="text-gray-500 text-sm">
+          © {new Date().getFullYear()} Hoterra • Luxury Hospitality
+        </p>
       </div>
     </footer>
   );
