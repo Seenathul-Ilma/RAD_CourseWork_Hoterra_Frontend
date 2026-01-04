@@ -1,4 +1,4 @@
-import { useAuth } from "../context/authContext"; // Adjust path based on your setup
+//import { useAuth } from "../context/authContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 /* import {
@@ -86,7 +86,7 @@ export default function RoomDetail() {
   const [checkinDate, setCheckinDate] = useState<Date>(new Date());
   const [checkoutDate, setCheckoutDate] = useState<Date>(() => {
     const date = new Date();
-    date.setDate(date.getDate() + 3);
+    date.setDate(date.getDate() + 1);
     return date;
   });
 
@@ -98,7 +98,7 @@ export default function RoomDetail() {
   );
   const [checkoutCurrentMonth, setCheckoutCurrentMonth] = useState<Date>(() => {
     const date = new Date();
-    date.setDate(date.getDate() + 3);
+    date.setDate(date.getDate() + 1);
     return date;
   });
 
@@ -590,10 +590,10 @@ export default function RoomDetail() {
   };
 
   // Add this function after your other handlers
-  const handleOpenRoomDetailModal = (room: any) => {
+  /* const handleOpenRoomDetailModal = (room: any) => {
     setSelectedRoomForBooking(room);
     setShowRoomDetailModal(true);
-  };
+  }; */
 
   const navigateToBookingPage = (room: any) => {
   const bookingData = {
@@ -617,6 +617,7 @@ export default function RoomDetail() {
   };
   
   navigate("/book", { state: { bookingData } });
+  console.log(bookingData)
 };
 
   if (loading) {

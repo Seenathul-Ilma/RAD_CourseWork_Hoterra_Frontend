@@ -97,7 +97,7 @@ export default function Rooms() {
   const [checkinDate, setCheckinDate] = useState<Date>(new Date());
   const [checkoutDate, setCheckoutDate] = useState<Date>(() => {
     const date = new Date();
-    date.setDate(date.getDate() + 3);
+    date.setDate(date.getDate() + 1);
     return date;
   });
 
@@ -109,7 +109,7 @@ export default function Rooms() {
   );
   const [checkoutCurrentMonth, setCheckoutCurrentMonth] = useState<Date>(() => {
     const date = new Date();
-    date.setDate(date.getDate() + 3);
+    date.setDate(date.getDate() + 1);
     return date;
   });
 
