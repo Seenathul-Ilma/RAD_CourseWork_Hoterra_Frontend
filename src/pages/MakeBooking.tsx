@@ -26,29 +26,38 @@ export default function MakeBooking() {
     bookingData?.selectedRoom || null
   );
 
+  const [isBookingCompleted, setIsBookingCompleted] = useState(false)
+
   // Date states
   const [checkinDate, setCheckinDate] = useState<Date>(
-    bookingData?.checkinDate ? new Date(bookingData.checkinDate) : new Date()
-  );
-  const [checkoutDate, setCheckoutDate] = useState<Date>(() => {
-    const date = bookingData?.checkoutDate
-      ? new Date(bookingData.checkoutDate)
-      : new Date();
-    date.setDate(date.getDate() + 3);
-    return date;
-  });
+  bookingData?.checkinDate ? new Date(bookingData.checkinDate) : new Date()
+);
+
+const [checkoutDate, setCheckoutDate] = useState<Date>(() => {
+  if (bookingData?.checkoutDate) {
+    return new Date(bookingData.checkoutDate);
+  }
+  const date = new Date();
+  date.setDate(date.getDate());
+  return date;
+});
 
   // Calendar display states
   const [checkinPickerOpen, setCheckinPickerOpen] = useState(false);
-  const [checkoutPickerOpen, setCheckoutPickerOpen] = useState(false);
-  const [checkinCurrentMonth, setCheckinCurrentMonth] = useState<Date>(
-    new Date()
-  );
-  const [checkoutCurrentMonth, setCheckoutCurrentMonth] = useState<Date>(() => {
-    const date = new Date();
-    date.setDate(date.getDate() + 3);
-    return date;
-  });
+const [checkoutPickerOpen, setCheckoutPickerOpen] = useState(false);
+
+const [checkinCurrentMonth, setCheckinCurrentMonth] = useState<Date>(
+  bookingData?.checkinDate ? new Date(bookingData.checkinDate) : new Date()
+);
+
+const [checkoutCurrentMonth, setCheckoutCurrentMonth] = useState<Date>(() => {
+  if (bookingData?.checkoutDate) {
+    return new Date(bookingData.checkoutDate);
+  }
+  const date = new Date();
+  date.setDate(date.getDate());
+  return date;
+});
 
   // Refs for click outside detection
   const checkinPickerRef = useRef<HTMLDivElement>(null);
@@ -273,6 +282,8 @@ export default function MakeBooking() {
   };
 
   const handleBookNow = async () => {
+    if (isBookingCompleted) return;
+
     if (!selectedRoom || !bookingData?.roomTypeId) {
       setErrorMsg("Please select a room first.");
       return;
@@ -332,12 +343,18 @@ export default function MakeBooking() {
 
       const response = await createBooking(bookingPayload);
 
+      setIsBookingCompleted(true)
+
       setSuccessMsg(response.message || `Room ${selectedRoom.roomNumber} booked successfully!`);
+
+      // Clear the location state
+      window.history.replaceState({}, document.title);
 
       // Redirect after success
       setTimeout(() => {
-        navigate("/my-bookings"); // Or any other page
+        navigate("/all-bookings");
       }, 2000);
+      
     } catch (err: any) {
       console.error("Booking error:", err);
       const errorMessage =
@@ -495,10 +512,12 @@ export default function MakeBooking() {
                           <div className="flex items-center gap-4">
                             <span className="text-gray-600">Amenities:</span>
                             <span className="text-gray-800">
-                              {Array.isArray(selectedRoom.amenities)
-                                ? selectedRoom.amenities.join(", ")
-                                : "No amenities"}
-                            </span>
+  {Array.isArray(selectedRoom.amenities) && selectedRoom.amenities.length > 0
+    ? selectedRoom.amenities
+        .map((a: any) => typeof a === "string" ? a : a.name)
+        .join(", ")
+    : "No amenities"}
+</span>
                           </div>
                         </div>
                         <button
@@ -903,23 +922,33 @@ export default function MakeBooking() {
 
                 {/* Action Button */}
                 <button
-                  onClick={handleBookNow}
-                  disabled={
-                    isBookingLoading ||
-                    !guestName.trim() ||
-                    (!guestEmail.trim() && !guestPhone.trim())
-                  }
-                  className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isBookingLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    "Confirm Booking"
-                  )}
-                </button>
+  onClick={handleBookNow}
+  disabled={
+    isBookingLoading ||
+    isBookingCompleted ||
+    !guestName.trim() ||
+    (!guestEmail.trim() && !guestPhone.trim())
+  }
+  className={`w-full py-4 font-bold rounded-lg transition-all shadow-lg hover:shadow-xl
+    flex items-center justify-center gap-2
+    ${
+      isBookingCompleted
+        ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        : "bg-gradient-to-r from-amber-600 to-amber-700 text-white hover:from-amber-700 hover:to-amber-800"
+    }
+  `}
+>
+  {isBookingLoading && !isBookingCompleted ? (
+    <>
+      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+      Processing...
+    </>
+  ) : isBookingCompleted ? (
+    "Booking Completed"
+  ) : (
+    "Confirm Booking"
+  )}
+</button>
 
                 <p className="text-xs text-gray-500 mt-4 text-center">
                   By confirming this booking, you agree to our terms and
