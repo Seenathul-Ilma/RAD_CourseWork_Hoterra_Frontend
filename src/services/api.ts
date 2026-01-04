@@ -1,9 +1,11 @@
 import axios, { AxiosError } from "axios";
 import { refreshAccessToken } from "./auth";
 
+const apiUrl = import.meta.env.VITE_API_URL as string
+
 const api = axios.create({
     //baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1"
-    baseURL: "https://rad-course-work-hoterra-backend.vercel.app/api/v1"
+    baseURL: apiUrl
 })
 
 const PUBLIC_ENDPOINTS = ["/auth/register", "/auth/login"]
