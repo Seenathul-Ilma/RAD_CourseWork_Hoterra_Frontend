@@ -1,4 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useAuth } from "../context/authContext";
+
 import {
   createAmenity,
   deleteAmenity,
@@ -12,6 +14,7 @@ import { NavLink } from "react-router-dom";
 import * as Icons from "lucide-react";
 
 export default function Service() {
+  const { user: currentUser } = useAuth();
   const [amenities, setAmenities] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
@@ -23,6 +26,11 @@ export default function Service() {
   const [description, setDiscription] = useState("");
 
   const [editingAmenityId, setEditingAmenityId] = useState<string | null>(null);
+
+  //const isGuestUser = currentUser?.roles?.includes("GUEST");
+  const isStaffUser = currentUser?.roles?.includes("ADMIN") || 
+                     currentUser?.roles?.includes("RECEPTIONIST");
+
 
   const colorCombinations: Record<
     string,
@@ -213,6 +221,7 @@ export default function Service() {
           </p>
         </div>
 
+        { isStaffUser && (
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100">
           <form>
             <div className="border border-gray-200 rounded-lg p-5 text-center">
@@ -288,7 +297,7 @@ export default function Service() {
               </div>
             </div>
           </form>
-        </div>
+        </div> )}
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto pt-10">
@@ -308,6 +317,7 @@ export default function Service() {
                 className="relative bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100 group"
               >
                 {/* Action buttons */}
+                { isStaffUser && (
                 <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                   <button
                     onClick={(e) => {
@@ -328,7 +338,7 @@ export default function Service() {
                   >
                     <Icons.Trash2 className="w-5 h-5 text-red-700" />
                   </button>
-                </div>
+                </div>)}
 
                 {/* Amenity icon */}
                 <div

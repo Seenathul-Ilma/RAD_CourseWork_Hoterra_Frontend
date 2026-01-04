@@ -25,9 +25,15 @@ import {
 import SuccessMessage from "../components/SuccessMessage";
 import ErrorMessage from "../components/ErrorMessage";
 import { getAllAvailableRoomsByRoomType } from "../services/availability";
+import { useAuth } from "../context/authContext";
 
 export default function RoomDetail() {
   const navigate = useNavigate();
+  const {user: currentUser} = useAuth()
+
+  //const isGuestUser = currentUser?.roles?.includes("GUEST");
+  const isStaffUser = currentUser?.roles?.includes("ADMIN") || 
+                     currentUser?.roles?.includes("RECEPTIONIST");
 
   const [loading, setLoading] = useState(true);
   const { roomtypeId } = useParams<{ roomtypeId: string }>();
@@ -1613,7 +1619,7 @@ export default function RoomDetail() {
   </div>
 )}
 
-        {openAddRoomModal && (
+        {openAddRoomModal && isStaffUser && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="w-full max-w-lg">
               {" "}
@@ -1821,13 +1827,13 @@ export default function RoomDetail() {
             </div>
 
             <div className="flex gap-3">
-              <button
+              {isStaffUser && (<button
                 onClick={handleOpenAddRoomModal}
                 className=" inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
               >
                 <Icons.HousePlus className="w-5 h-5" />
                 Create
-              </button>
+              </button>)}
               {/* Custom Dropdown Component */}
               <div className="relative w-40" ref={sortdropdownRef}>
                 <button
@@ -2003,7 +2009,7 @@ export default function RoomDetail() {
                   </div>
 
                   {/* Update button below the card, right side */}
-                  <div className="flex justify-end mb-4 gap-2">
+                  {isStaffUser && (<div className="flex justify-end mb-4 gap-2">
                     <button
                       type="button"
                       className="inline-flex items-center gap-1.5 px-4 py-1 rounded-bl-lg rounded-tr-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
@@ -2026,7 +2032,7 @@ export default function RoomDetail() {
                     >
                       Delete
                     </button>
-                  </div>
+                  </div>)}
                 </div>
               ))}
             </div>

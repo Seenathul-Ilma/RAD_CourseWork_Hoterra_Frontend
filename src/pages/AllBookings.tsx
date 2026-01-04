@@ -220,7 +220,7 @@ export default function AllBookings() {
           </div>
 
           {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {isStaffUser && (<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white p-4 rounded-xl shadow border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
@@ -272,7 +272,7 @@ export default function AllBookings() {
                 <Icons.DollarSign className="w-8 h-8 text-emerald-600" />
               </div>
             </div>
-          </div>
+          </div>)}
 
           {/* Bookings Table */}
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">

@@ -35,10 +35,12 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getAllAvailablityByDate } from "../services/availability";
+import { useAuth } from "../context/authContext";
 
 //export default function Hotels() {
 export default function Rooms() {
   const navigate = useNavigate();
+  const { user: currentUser} = useAuth()
 
   const [roomtypes, setRoomtypes] = useState([]);
   const [page, setPage] = useState(1);
@@ -63,6 +65,11 @@ export default function Rooms() {
   const [editingRoomTypeId, setEditingRoomTypeId] = useState<string | null>(
     null
   );
+
+  //const isGuestUser = currentUser?.roles?.includes("GUEST");
+  const isStaffUser = currentUser?.roles?.includes("ADMIN") || 
+                     currentUser?.roles?.includes("RECEPTIONIST");
+
 
   const [openAddRoomTypeModal, setOpenAddRoomTypeModal] = useState(false);
 
@@ -626,7 +633,7 @@ export default function Rooms() {
           }`}
         >
           {/* Room Details - Left side (Only when form is open) */}
-          {openAddRoomTypeModal && (
+          {openAddRoomTypeModal && isStaffUser && (
             <div className="lg:col-span-2">
               <form>
                 <div className="border border-gray-200 rounded-lg p-5 text-center">
@@ -1372,13 +1379,13 @@ export default function Rooms() {
           {/* Custom Dropdown Component */}
 
           <div className="flex gap-3">
-            <button
+            {isStaffUser && (<button
               onClick={handleOpenAddRoomModal}
               className=" inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
             >
               <HousePlus className="w-5 h-5" />
               Create
-            </button>
+            </button>)}
             {/* Custom Dropdown Component */}
             <div className="relative w-56" ref={sortdropdownRef}>
               <button
@@ -1555,7 +1562,7 @@ export default function Rooms() {
                       )}
                   </div>
 
-                  <div className="flex gap-3 mt-auto pt-4">
+                  {isStaffUser && (<div className="flex gap-3 mt-auto pt-4">
                     <button
                       type="button"
                       className="w-full py-3 rounded-lg text-white bg-gradient-to-r from-amber-600 to-amber-800 hover:to-amber-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transform transition duration-200 ease-in-out hover:scale-103 active:scale-95"
@@ -1578,7 +1585,7 @@ export default function Rooms() {
                     >
                       Delete
                     </button>
-                  </div>
+                  </div>)}
                 </div>
               );
             })}

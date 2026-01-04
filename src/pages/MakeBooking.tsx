@@ -347,6 +347,8 @@ const [checkoutCurrentMonth, setCheckoutCurrentMonth] = useState<Date>(() => {
 
       setSuccessMsg(response.message || `Room ${selectedRoom.roomNumber} booked successfully!`);
 
+      setSelectedRoom(null)
+      
       // Clear the location state
       window.history.replaceState({}, document.title);
 
