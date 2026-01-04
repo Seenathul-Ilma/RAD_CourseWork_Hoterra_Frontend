@@ -2,7 +2,8 @@ import axios, { AxiosError } from "axios";
 import { refreshAccessToken } from "./auth";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1"
+    //baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1"
+    baseURL: import.meta.env.VITE_API_URL
 })
 
 const PUBLIC_ENDPOINTS = ["/auth/register", "/auth/login"]
