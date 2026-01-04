@@ -63,7 +63,7 @@ export default function Header() {
                 }`
               }
             >
-              Rooms
+              Book A Room
             </NavLink>
             <NavLink
               to="/contact"
@@ -77,7 +77,7 @@ export default function Header() {
             >
               Contact
             </NavLink>
-            <NavLink
+            {/* <NavLink
                   to="/book"
                   className={({ isActive }) =>
                     `transition-colors duration-300 ${
@@ -88,11 +88,9 @@ export default function Header() {
                   }
                 >
                   Book A Room
-                </NavLink>
-            {user.roles?.includes("GUEST") && (
-              <>
+                </NavLink> */}
                 <NavLink
-                  to="/my-bookings"
+                  to="/all-bookings"
                   className={({ isActive }) =>
                     `transition-colors duration-300 ${
                       isActive
@@ -101,9 +99,11 @@ export default function Header() {
                     }`
                   }
                 >
-                  Bookings
+                  Reservations
                 </NavLink>
-                <NavLink
+            {user.roles?.includes("GUEST") && (
+              <>
+                {/* <NavLink
                   to="/my-stays"
                   className={({ isActive }) =>
                     `transition-colors duration-300 ${
@@ -114,7 +114,7 @@ export default function Header() {
                   }
                 >
                   Stays
-                </NavLink>
+                </NavLink> */}
               </>
             )}
             {user.roles?.includes("ADMIN") && (
