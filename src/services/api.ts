@@ -9,6 +9,8 @@ const api = axios.create({
   timeout: 15000, // Increase timeout to 15 seconds
 });
 
+console.log("API Base URL:", VITE_API_BASE_URL); // Add this to debug
+
 const PUBLIC_ENDPOINTS = ["/auth/register", "/auth/login"];
 
 // interceptors

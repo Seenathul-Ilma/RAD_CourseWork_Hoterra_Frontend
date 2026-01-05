@@ -10,7 +10,7 @@ export const getAllAvailableRoomsByRoomType = async (
   const formatDateForAPI = (date: Date) =>
     date.toLocaleDateString("en-CA"); // YYYY-MM-DD (LOCAL)
 
-  const res = await api.get(`available/roomtype/${id}`, {
+  const res = await api.get(`/api/v1/available/roomtype/${id}`, {
     params: {
       checkin: formatDateForAPI(checkinDate),
       checkout: formatDateForAPI(checkoutDate),
@@ -31,7 +31,7 @@ export const getAllAvailablityByDate = async (
   const formatDateForAPI = (date: Date) =>
     date.toLocaleDateString("en-CA"); // YYYY-MM-DD (LOCAL)
 
-  const res = await api.get(`available/`, {
+  const res = await api.get(`/api/v1/available/`, {
     params: {
       checkin: formatDateForAPI(checkinDate),
       checkout: formatDateForAPI(checkoutDate),

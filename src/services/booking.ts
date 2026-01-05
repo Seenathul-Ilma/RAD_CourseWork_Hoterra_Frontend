@@ -8,16 +8,16 @@ export const createBooking = async (bookingData: {
   guestemail?: string;
   guestphone?: string;
 }) => {
-  const res = await api.post("/booking/create", bookingData);
+  const res = await api.post("/api/v1/booking/create", bookingData);
   return res.data;
 };
 
 export const getAllBookings = async (page: number, limit: number) => {
-  const response = await api.get(`/booking?page=${page}&limit=${limit}`);
+  const response = await api.get(`/api/v1/booking?page=${page}&limit=${limit}`);
   return response.data;
 };
 
 export const updateBookingStatus = async (bookingId: string, data: { status: string }) => {
-  const response = await api.patch(`/booking/update/status/${bookingId}`, data);
+  const response = await api.patch(`/api/v1/booking/update/status/${bookingId}`, data);
   return response.data;
 };

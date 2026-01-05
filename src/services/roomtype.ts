@@ -6,7 +6,7 @@ import api from "./api"
 } */
 
 export const getRoomTypeById = async (id: string) => {
-    const res = await api.get(`/roomtype/${id}`)
+    const res = await api.get(`/api/v1/roomtype/${id}`)
     return res.data
 }
 
@@ -16,7 +16,7 @@ export const getRoomTypeById = async (id: string) => {
 } */
 
 export const getAllRoomType = async (page: number, limit: number, group?: string, sort?: string) => {
-    const res = await api.get("/roomtype", {
+    const res = await api.get("/api/v1/roomtype", {
         params: {
             page,
             limit,
@@ -30,21 +30,21 @@ export const getAllRoomType = async (page: number, limit: number, group?: string
 
 
 export const createRoomType = async (data: any) => {
-    const res = await api.post("/roomtype/create", data)
+    const res = await api.post("/api/v1/roomtype/create", data)
     return res.data
 }
 
 export const generateRoomTypeDesc = async (data: any) => {
-    const res = await api.post("/roomtype/ai/generate", data)
+    const res = await api.post("/api/v1/roomtype/ai/generate", data)
     return res.data
 }
 
 export const updateRoomType = async (id: string, data: any) => {
-    const res = await api.put(`/roomtype/update/${id}`, data)
+    const res = await api.put(`/api/v1/roomtype/update/${id}`, data)
     return res.data
 }
 
 export const deleteRoomType = async (id: string) => {
-    const res = await api.delete(`/roomtype/delete/${id}`);
+    const res = await api.delete(`/api/v1/roomtype/delete/${id}`);
     return res.data;
 };

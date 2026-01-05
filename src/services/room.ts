@@ -18,7 +18,7 @@ export const getAllRoomsByRoomType = async (
     group?: string, 
     sort?: string
 ) => {
-    const res = await api.get(`/room/roomtype/${id}`, {
+    const res = await api.get(`/api/v1/room/roomtype/${id}`, {
         params: {
             page,
             limit,
@@ -33,18 +33,18 @@ export const getAllRoomsByRoomType = async (
 
 
 export const createRoom = async (data: any) => {
-    const res = await api.post("/room/create", data)
+    const res = await api.post("/api/v1/room/create", data)
     return res.data
 }
 
 
 export const updateRoom = async (id: string, data: any) => {
-    const res = await api.put(`/room/update/${id}`, data)
+    const res = await api.put(`/api/v1/room/update/${id}`, data)
     return res.data
 }
 
 
 export const deleteRoom = async (id: string) => {
-    const res = await api.delete(`/room/delete/${id}`);
+    const res = await api.delete(`/api/v1/room/delete/${id}`);
     return res.data;
 };

@@ -17,7 +17,7 @@ export const startBackendKeepWarm = () => {
 };
 
 export const checkBackendHealth = async () => {
-  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 
+  const BACKEND_URL = import.meta.env.VITE_API_BASE_URL as string || 
     "https://rad-course-work-hoterra-backend.vercel.app";
 
   try {
