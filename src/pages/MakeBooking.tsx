@@ -320,8 +320,8 @@ const [checkoutCurrentMonth, setCheckoutCurrentMonth] = useState<Date>(() => {
       const bookingPayload: any = {
         roomid: selectedRoom.id,
         //checkin: checkinDate.toISOString(),
-        checkin: checkinDate.toISOString().split("T")[0],
-        checkout: checkoutDate.toISOString().split("T")[0],
+        checkin: checkinDate.toISOString(),
+        checkout: checkoutDate.toISOString(),
       };
 
       console.log()
