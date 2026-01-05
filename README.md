@@ -286,5 +286,5 @@ MIT License
 
 ---
 
-**Backend Repository**: https://github.com/Seenathul-Ilma/RAD_CourseWork_Hoterra_Backend
-**Deployed Backend**: https://rad-course-work-hoterra-backend.vercel.app
+- **Backend Repository**: https://github.com/Seenathul-Ilma/RAD_CourseWork_Hoterra_Backend
+- **Deployed Backend**: https://rad-course-work-hoterra-backend.vercel.app
