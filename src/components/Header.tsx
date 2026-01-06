@@ -130,7 +130,7 @@ export default function Header() {
             
             {user.roles?.includes("ADMIN") && (
               <>
-                {/* <NavLink
+                <NavLink
                   to="/staff"
                   className={({ isActive }) =>
                     `transition-colors duration-300 ${
@@ -141,7 +141,7 @@ export default function Header() {
                   }
                 >
                   Staff
-                </NavLink> */}
+                </NavLink>
               </>
             )}
             
