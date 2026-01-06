@@ -26,19 +26,19 @@ export const getStaffUsers = async (
     limit: number = 10
 ) => {
     const response = await api.get<StaffResponse>(
-        `/staff?role=${role}&page=${page}&limit=${limit}`
+        `/api/v1/auth/staff?role=${role}&page=${page}&limit=${limit}`
     );
     return response.data;
 };
 
 // Invite a new staff member
 export const inviteStaff = async (email: string, role: "ADMIN" | "RECEPTIONIST") => {
-    const response = await api.post("/staff", { email, inviterole: role });
+    const response = await api.post("/api/v1/invite/staff", { email, inviterole: role });
     return response.data;
 };
 
 // Delete a staff member
 export const deleteStaffUser = async (id: string) => {
-    const response = await api.delete(`/staff/${id}`);
+    const response = await api.delete(`/api/v1/auth/staff/${id}`);
     return response.data;
 };
