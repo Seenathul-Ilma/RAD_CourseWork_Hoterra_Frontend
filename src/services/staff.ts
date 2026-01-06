@@ -37,6 +37,12 @@ export const inviteStaff = async (email: string, role: "ADMIN" | "RECEPTIONIST")
     return response.data;
 };
 
+// Update staff member account status (ACCESS)
+export const updateAccountStatus = async (id: string, data: { status: string }) => {
+  const response = await api.patch(`/api/v1/auth/update/status/${id}`, data);
+  return response.data;
+};
+
 // Delete a staff member
 export const deleteStaffUser = async (id: string) => {
     const response = await api.delete(`/api/v1/auth/staff/${id}`);

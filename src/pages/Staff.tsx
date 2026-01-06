@@ -4,7 +4,10 @@ import {
   UserCheck,
   ShieldAlert,
   Trash2,
-  Send
+  Send,
+  UserX,
+  Check,
+  Lock
 } from "lucide-react";
 import ErrorMessage from "../components/ErrorMessage";
 import SuccessMessage from "../components/SuccessMessage";
@@ -12,6 +15,7 @@ import {
   getStaffUsers,
   inviteStaff,
   deleteStaffUser,
+  updateAccountStatus,
   type StaffUser
 } from "../services/staff";
 
@@ -51,7 +55,7 @@ export default function Staff() {
       setReceptionistPage(res.pagination.page);
     } catch (err: any) {
       console.error(err);
-      //setErrorMsg(err.response?.data?.message || "Failed to fetch receptionists");
+      setErrorMsg(err.response?.data?.message || "Failed to fetch receptionists");
     } finally {
       setLoadingReceptionists(false);
     }
@@ -116,23 +120,118 @@ export default function Staff() {
     }
   };
 
-  const handleRemoveUser = async (id: string, role: "ADMIN" | "RECEPTIONIST") => {
-    if (!window.confirm("Are you sure you want to remove this user?")) return;
-
+  // Handle updating account status
+  const handleUpdateStatus = async (id: string, newStatus: string, role: "ADMIN" | "RECEPTIONIST") => {
     try {
-      await deleteStaffUser(id);
-      setSuccessMsg("User removed successfully.");
+      await updateAccountStatus(id, { status: newStatus });
+      setSuccessMsg(`User status updated to ${newStatus}`);
+      
+      // Refresh the appropriate list
       if (role === "ADMIN") {
         fetchAdmins(adminPage);
       } else {
         fetchReceptionists(receptionistPage);
       }
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "Failed to remove user.");
+      setErrorMsg(err.response?.data?.message || "Failed to update user status.");
     }
   };
 
-  // Pagination Component Helper
+  // Handle deleting user
+  const handleDeleteUser = async (id: string, role: "ADMIN" | "RECEPTIONIST") => {
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+
+    try {
+      await deleteStaffUser(id);
+      setSuccessMsg("User deleted successfully.");
+      
+      // Refresh the appropriate list
+      if (role === "ADMIN") {
+        fetchAdmins(adminPage);
+      } else {
+        fetchReceptionists(receptionistPage);
+      }
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || "Failed to delete user.");
+    }
+  };
+
+  // Helper function to render action buttons based on status
+  const renderActionButtons = (user: StaffUser, role: "ADMIN" | "RECEPTIONIST") => {
+    const { id, status } = user;
+
+    switch (status) {
+      case "PENDING":
+        return (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleUpdateStatus(id, "ACTIVE", role)}
+              className="text-green-600 hover:text-green-800 font-medium text-sm flex items-center transition-colors duration-200"
+              title="Activate User"
+            >
+              <Check className="w-4 h-4 mr-1" />
+              Activate
+            </button>
+            <button
+              onClick={() => handleUpdateStatus(id, "BLOCKED", role)}
+              className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center transition-colors duration-200"
+              title="Reject User"
+            >
+              <UserX className="w-4 h-4 mr-1" />
+              Reject
+            </button>
+          </div>
+        );
+      
+      case "ACTIVE":
+        return (
+          <button
+            onClick={() => handleUpdateStatus(id, "BLOCKED", role)}
+            className="text-orange-600 hover:text-orange-800 font-medium text-sm flex items-center transition-colors duration-200"
+            title="Block User"
+          >
+            <Lock className="w-4 h-4 mr-1" />
+            Block
+          </button>
+        );
+      
+      case "BLOCKED":
+        return (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleUpdateStatus(id, "ACTIVE", role)}
+              className="text-green-600 hover:text-green-800 font-medium text-sm flex items-center transition-colors duration-200"
+              title="Activate User"
+            >
+              <Check className="w-4 h-4 mr-1" />
+              Activate
+            </button>
+            <button
+              onClick={() => handleDeleteUser(id, role)}
+              className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center transition-colors duration-200"
+              title="Delete User"
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete
+            </button>
+          </div>
+        );
+      
+      default:
+        return (
+          <button
+            onClick={() => handleDeleteUser(id, role)}
+            className="text-red-600 hover:text-red-800 font-medium text-sm flex items-center transition-colors duration-200"
+            title="Delete User"
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            Delete
+          </button>
+        );
+    }
+  };
+
+  // Pagination Component Helper (keep your existing renderPagination function)
   const renderPagination = (
     currentPage: number,
     totalPages: number,
@@ -339,19 +438,15 @@ export default function Staff() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${receptionist.status === "ACTIVE"
                             ? "bg-green-100 text-green-800"
+                            : receptionist.status === "BLOCKED"
+                            ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"
                             }`}>
                             {receptionist.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleRemoveUser(receptionist.id, "RECEPTIONIST")}
-                            className="text-red-600 hover:text-red-900 font-medium text-sm flex items-center transition-colors duration-200"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Remove
-                          </button>
+                          {renderActionButtons(receptionist, "RECEPTIONIST")}
                         </td>
                       </tr>
                     ))
@@ -442,19 +537,15 @@ export default function Staff() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${admin.status === "ACTIVE"
                             ? "bg-green-100 text-green-800"
+                            : admin.status === "BLOCKED"
+                            ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"
                             }`}>
                             {admin.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleRemoveUser(admin.id, "ADMIN")}
-                            className="text-red-600 hover:text-red-900 font-medium text-sm flex items-center transition-colors duration-200"
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Remove
-                          </button>
+                          {renderActionButtons(admin, "ADMIN")}
                         </td>
                       </tr>
                     ))
@@ -504,7 +595,10 @@ export default function Staff() {
               <li><span className="font-medium">•</span> Type an email address and click "Send Invitation" to invite new staff members</li>
               <li><span className="font-medium">•</span> Receptionists have front desk access, administrators have system management access</li>
               <li><span className="font-medium">•</span> Invited staff will appear in the system once they accept the invitation</li>
-              <li><span className="font-medium">•</span> Use the "Remove" button to revoke access for any staff member</li>
+              <li><span className="font-medium">•</span> Use the action buttons to manage user status (Activate, Block, Reject, Delete)</li>
+              <li><span className="font-medium">•</span> Pending users can be Activated or Rejected</li>
+              <li><span className="font-medium">•</span> Active users can be Blocked</li>
+              <li><span className="font-medium">•</span> Blocked users can be Activated or Deleted</li>
             </ul>
           </div>
         </div>
