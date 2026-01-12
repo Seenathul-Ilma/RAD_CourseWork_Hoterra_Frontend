@@ -1,12 +1,15 @@
 import axiosConfig from "./api"
 
 type registerDataType = {
-    firstname: string  // firstName: firstName
+    firstname: string    // firstName: firstName
     lastname: string
     email: string
+    phone: string
     password: string
     role: string
+    token?: string | null
 }
+
 
 export const refreshAccessToken = async (refreshToken: string) => {
     const res = await axiosConfig.post("/api/v1/auth/refresh", { refreshToken: refreshToken})
@@ -28,7 +31,7 @@ export const getMyDetail = async () => {
     return res.data
 }
 
-export const adminRegister = async (data: registerDataType) => {
-    const res = await axiosConfig.post("/api/v1/auth/admin/register", data)
+export const staffRegister = async (data: registerDataType) => {
+    const res = await axiosConfig.post("/api/v1/auth/staff/register", data)
     return res.data
 }

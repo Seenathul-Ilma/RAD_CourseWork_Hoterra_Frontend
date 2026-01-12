@@ -1,19 +1,28 @@
-import { Eye, Lock, Mail, Hotel, User, UserPlus, Phone, EyeOff } from "lucide-react";
+import {
+  Eye,
+  Lock,
+  Mail,
+  Hotel,
+  User,
+  UserPlus,
+  Phone,
+  EyeOff,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { register } from "../services/auth";
+import { register, staffRegister } from "../services/auth";
 
 export default function Register() {
   const navigate = useNavigate();
 
-  const [firstname, setFirstName] = useState("")
-  const [lastname, setLastName] = useState("")
-  const [email, setEmail] = useState("")
-  const [phone, setPhone] = useState("")
-  const [password, setPassword] = useState("")
-  const [conPassword, setConPassword] = useState("")
-  const [role, setRole] = useState("GUEST")
+  const [firstname, setFirstName] = useState("");
+  const [lastname, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [conPassword, setConPassword] = useState("");
+  const [role, setRole] = useState("GUEST");
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConPassword, setShowConPassword] = useState(false);
@@ -21,7 +30,7 @@ export default function Register() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const token = params.get("token"); // this gets the token from URL
-  const roleParam = params.get("role")
+  const roleParam = params.get("role");
 
   useEffect(() => {
     if (token && roleParam) {
@@ -32,9 +41,16 @@ export default function Register() {
   }, [roleParam]);
 
   const handleRegister = async (e: FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!firstname || !lastname || !email || !phone || !password || !conPassword) {
+    if (
+      !firstname ||
+      !lastname ||
+      !email ||
+      !phone ||
+      !password ||
+      !conPassword
+    ) {
       alert("Oooppsss.. All fields are required..!");
       return;
     }
@@ -52,20 +68,29 @@ export default function Register() {
         phone,
         password,
         role,
-        token
+        token,
       };
 
-      const res: any = await register(obj);
-      console.log(res.data);
-      console.log(res.message);
-      alert(`Registration successful..! Email: ${res?.data?.email}`);
+      if (token) {
+        // Invite-based registration (ADMIN / RECEPTIONIST)
+        const res: any = await staffRegister(obj);
+        console.log(res.data);
+        console.log(res.message);
+        alert(`Registration successful..! Email: ${res?.data?.email}`);
+      } else {
+        // Normal guest registration
+        const res: any = await register(obj);
+        console.log(res.data);
+        console.log(res.message);
+        alert(`Registration successful..! Email: ${res?.data?.email}`);
+      }
 
       //localStorage.setItem("accessToken")
       navigate("/login");
     } catch (err: any) {
       console.error(err?.response?.data);
     }
-  }  
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -84,7 +109,9 @@ export default function Register() {
           <div className="space-y-6">
             {/* First Name Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                First Name
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="w-5 h-5 text-gray-400" />
@@ -102,7 +129,9 @@ export default function Register() {
 
             {/* Last Name Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Last Name
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <User className="w-5 h-5 text-gray-400" />
@@ -120,7 +149,9 @@ export default function Register() {
 
             {/* Email Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="w-5 h-5 text-gray-400" />
@@ -138,7 +169,9 @@ export default function Register() {
 
             {/* Contact Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Contact</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contact
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Phone className="w-5 h-5 text-gray-400" />
@@ -156,7 +189,9 @@ export default function Register() {
 
             {/* Password Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="w-5 h-5 text-gray-400" />
@@ -182,12 +217,16 @@ export default function Register() {
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-sm text-gray-500">Password must be at least 8 characters long</p>
+              <p className="mt-1 text-sm text-gray-500">
+                Password must be at least 8 characters long
+              </p>
             </div>
 
             {/* Confirm Password Field */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Confirm Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="w-5 h-5 text-gray-400" />
@@ -223,7 +262,20 @@ export default function Register() {
                 className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
               />
               <label className="ml-3 block text-sm text-gray-900">
-                I agree to the <Link to="/" className="text-amber-600 hover:text-amber-500 font-medium">Terms of Service</Link> and <Link to="/" className="text-amber-600 hover:text-amber-500 font-medium">Privacy Policy</Link>
+                I agree to the{" "}
+                <Link
+                  to="/"
+                  className="text-amber-600 hover:text-amber-500 font-medium"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  to="/"
+                  className="text-amber-600 hover:text-amber-500 font-medium"
+                >
+                  Privacy Policy
+                </Link>
               </label>
             </div>
 
@@ -241,8 +293,11 @@ export default function Register() {
           {/* Login Link */}
           <div className="text-center pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="font-medium text-amber-600 hover:text-amber-500 transition-colors duration-200">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="font-medium text-amber-600 hover:text-amber-500 transition-colors duration-200"
+              >
                 Sign in here
               </Link>
             </p>
@@ -250,5 +305,5 @@ export default function Register() {
         </div>
       </div>
     </div>
-  )
+  );
 }
