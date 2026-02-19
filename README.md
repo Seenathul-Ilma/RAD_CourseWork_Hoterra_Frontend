@@ -14,15 +14,52 @@ A modern, robust hotel room booking platform built with **React 18** and **TypeS
 - **Backend API**: [https://rad-course-work-hoterra-backend.vercel.app](https://rad-course-work-hoterra-backend.vercel.app)
 
 ## 📸 Screenshots
-*(Place your application screenshots in `src/assets` and uncomment the lines below)*
 
-```
-<!-- 
-![Home Page](src/assets/home-screen.png) 
-![Room Details](src/assets/room-details.png)
-![Booking Flow](src/assets/booking-screen.png)
--->
-```
+### 🔑 Authentication & Onboarding
+| Welcome / Landing | Login Page | Registration |
+|:---:|:---:|:---:|
+| ![Home](src/assets/screenshots/Home.png) | ![Login](src/assets/screenshots/Login.png) | ![Register](src/assets/screenshots/Register.png) |
+
+---
+
+### 🏨 Room Discovery & Types
+| Room Overview | Detailed View | Type Management |
+|:---:|:---:|:---:|
+| ![Room List](src/assets/screenshots/Room1.png) | ![Room Details](src/assets/screenshots/Room3.png) | ![Room Types](src/assets/screenshots/roomtype1.png) |
+
+#### More Room Previews
+| Room Type A | Room Type B | Room Type C |
+|:---:|:---:|:---:|
+| ![Type 2](src/assets/screenshots/roomtype2.png) | ![Type 3](src/assets/screenshots/roomtype3.png) | ![Type 4](src/assets/screenshots/roomtype4.png) |
+
+---
+
+### 📅 Booking Flow
+| Availability Check | Reservation Form | Confirmation |
+|:---:|:---:|:---:|
+| ![Availability](src/assets/screenshots/AvailableCheckRoomType.png) | ![Make Booking](src/assets/screenshots/makebook.png) | ![Book](src/assets/screenshots/book.png) |
+
+| My Stays | No Bookings State |
+|:---:|:---:|
+| ![My Bookings](src/assets/screenshots/mybookings.png) | ![Empty State](src/assets/screenshots/nobook.png) |
+
+---
+
+### 🛠️ Administrative & Staff Portal
+| All Bookings | Add New Room | Update Room |
+|:---:|:---:|:---:|
+| ![All Bookings](src/assets/screenshots/bookings.png) | ![Add Room](src/assets/screenshots/addroom.png) | ![Update Room](src/assets/screenshots/updateroom.png) |
+
+| Staff Invitation |
+|:---:|
+| ![Invite Receptionist](src/assets/screenshots/inviterecep.png) |
+
+---
+
+### 📞 Services & Support
+| Hotel Services | Contact Information |
+|:---:|:---:|
+| ![Services](src/assets/screenshots/Serivce1.png) | ![Contact](src/assets/screenshots/contact.png) |
 
 ## 🛠️ Tech Stack
 
