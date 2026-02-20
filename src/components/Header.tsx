@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Hotel, User } from "lucide-react";
+import { Hotel, User, Menu, X } from "lucide-react";
 import { useAuth } from "../context/authContext";
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navigate = useNavigate()
 
@@ -39,10 +41,9 @@ export default function Header() {
             <NavLink
               to="/home"
               className={({ isActive }) =>
-                `transition-colors duration-300 ${
-                  isActive
-                    ? "text-amber-700"
-                    : "text-gray-700 hover:text-amber-600"
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700"
+                  : "text-gray-700 hover:text-amber-600"
                 }`
               }
             >
@@ -52,10 +53,9 @@ export default function Header() {
             <NavLink
               to="/service"
               className={({ isActive }) =>
-                `transition-colors duration-300 ${
-                  isActive
-                    ? "text-amber-700"
-                    : "text-gray-700 hover:text-amber-600"
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700"
+                  : "text-gray-700 hover:text-amber-600"
                 }`
               }
             >
@@ -65,10 +65,9 @@ export default function Header() {
             <NavLink
               to="/rooms"
               className={({ isActive }) =>
-                `transition-colors duration-300 ${
-                  isActive
-                    ? "text-amber-700"
-                    : "text-gray-700 hover:text-amber-600"
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700"
+                  : "text-gray-700 hover:text-amber-600"
                 }`
               }
             >
@@ -77,10 +76,9 @@ export default function Header() {
             <NavLink
               to="/contact"
               className={({ isActive }) =>
-                `transition-colors duration-300 ${
-                  isActive
-                    ? "text-amber-700"
-                    : "text-gray-700 hover:text-amber-600"
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700"
+                  : "text-gray-700 hover:text-amber-600"
                 }`
               }
             >
@@ -98,18 +96,17 @@ export default function Header() {
                 >
                   Book A Room
                 </NavLink> */}
-                <NavLink
-                  to="/all-bookings"
-                  className={({ isActive }) =>
-                    `transition-colors duration-300 ${
-                      isActive
-                        ? "text-amber-700"
-                        : "text-gray-700 hover:text-amber-600"
-                    }`
-                  }
-                >
-                  Reservations
-                </NavLink>
+            <NavLink
+              to="/all-bookings"
+              className={({ isActive }) =>
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700"
+                  : "text-gray-700 hover:text-amber-600"
+                }`
+              }
+            >
+              Reservations
+            </NavLink>
 
             {user.roles?.includes("GUEST") && (
               <>
@@ -127,16 +124,15 @@ export default function Header() {
                 </NavLink> */}
               </>
             )}
-            
+
             {user.roles?.includes("ADMIN") && (
               <>
                 <NavLink
                   to="/staff"
                   className={({ isActive }) =>
-                    `transition-colors duration-300 ${
-                      isActive
-                        ? "text-amber-700"
-                        : "text-gray-700 hover:text-amber-600"
+                    `transition-colors duration-300 ${isActive
+                      ? "text-amber-700"
+                      : "text-gray-700 hover:text-amber-600"
                     }`
                   }
                 >
@@ -144,7 +140,7 @@ export default function Header() {
                 </NavLink>
               </>
             )}
-            
+
             <div className="flex items-center space-x-4">
               {/* <Link
                 to="/login"
@@ -198,7 +194,146 @@ export default function Header() {
             </div>
           </nav>
 
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-700 hover:text-amber-600 focus:outline-none"
+            >
+              {isMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <nav className="md:hidden mt-4 pb-4 space-y-4 flex flex-col">
+            <NavLink
+              to="/home"
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700 font-semibold"
+                  : "text-gray-700 hover:text-amber-600"
+                }`
+              }
+            >
+              Home
+            </NavLink>
+
+            <NavLink
+              to="/service"
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700 font-semibold"
+                  : "text-gray-700 hover:text-amber-600"
+                }`
+              }
+            >
+              Services
+            </NavLink>
+
+            <NavLink
+              to="/rooms"
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700 font-semibold"
+                  : "text-gray-700 hover:text-amber-600"
+                }`
+              }
+            >
+              Book A Room
+            </NavLink>
+
+            <NavLink
+              to="/contact"
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700 font-semibold"
+                  : "text-gray-700 hover:text-amber-600"
+                }`
+              }
+            >
+              Contact
+            </NavLink>
+
+            <NavLink
+              to="/all-bookings"
+              onClick={() => setIsMenuOpen(false)}
+              className={({ isActive }) =>
+                `transition-colors duration-300 ${isActive
+                  ? "text-amber-700 font-semibold"
+                  : "text-gray-700 hover:text-amber-600"
+                }`
+              }
+            >
+              Reservations
+            </NavLink>
+
+            {user.roles?.includes("ADMIN") && (
+              <NavLink
+                to="/staff"
+                onClick={() => setIsMenuOpen(false)}
+                className={({ isActive }) =>
+                  `transition-colors duration-300 ${isActive
+                    ? "text-amber-700 font-semibold"
+                    : "text-gray-700 hover:text-amber-600"
+                  }`
+                }
+              >
+                Staff
+              </NavLink>
+            )}
+
+            <div className="pt-4 border-t border-gray-100">
+              {user ? (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 px-2">
+                    <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <span className="text-gray-700 text-sm font-medium">
+                      {user.firstname || "User"}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full text-left px-2 py-2 text-gray-700 hover:text-amber-600 transition-colors duration-300"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-4 px-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="text-gray-700 hover:text-amber-600 transition-colors duration-300"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="bg-gradient-to-r from-amber-600 to-amber-800 text-white px-4 py-2 rounded-lg text-center hover:opacity-90 transition-opacity duration-300"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+            </div>
+          </nav>
+        )}
 
         {/* <Link to="/home">Home</Link>
             <Link to="/service">Services</Link>
